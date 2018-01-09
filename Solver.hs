@@ -5,11 +5,11 @@ import Debug.Trace (trace)
 newtype Net = Net [Piece]
 
 instance Show Net where
-  show (Net net) = intercalate "\n" $ map (foldl1 append) [
-    [empty, show (net !! 5), empty],
-    [show (net !! 2), show (net !! 0), show (net !! 3)],
-    [empty, show (net !! 1), empty],
-    [empty, show (net !! 4), empty] ]
+  show (Net [a,b,c,d,e,f]) = intercalate "\n" $ map (foldl1 append) [
+    [empty, show f, empty],
+    [show c, show a, show d],
+    [empty, show b, empty],
+    [empty, show e, empty] ]
     where
       empty = intercalate "\n" $ replicate 5 "     "
 
@@ -41,7 +41,7 @@ interfaces3 e1a e1b e2a e2b = corner && line1 && line2
   where
     line1 = all id $ zipWith (\f (x,y) -> f x y) [ignore, xor, xor, xor, ignore] $ zip e1a e1b
     line2 = all id $ zipWith (\f (x,y) -> f x y) [ignore, xor, xor, xor, ignore] $ zip e2a e2b
-    corner = (==1).length $ filter id $ map (!!0) [e1a, e1b, e2a, e2b]
+    corner = (==1).length $ filter id $ map (!!0) [e1a, e1b, e2a] 
     ignore = \a b-> True
 
 interface2 edge edge1 = zipWith (||) edge edge1
@@ -83,8 +83,10 @@ possibilities3b a b c nexts = concatMap tryVariations $ choices nexts
         tryVariation d = if valid d then map (d:) $ possibilities4 a b c d others else []
         valid d = interfaces3 (reverse $ edges a !! 1) (edges d !! 3) (edges b !! 1) (reverse $ edges d !! 2)
 
-possibilities4 _ _ _ _ nexts = [nexts]
-{-
+--possibilities4 _ _ _ _ nexts = [map (const xpiece) nexts]
+  --where
+    --xpiece = Piece (0, replicate 16 False)
+
 possibilities4 a b c d nexts = concatMap tryVariations $ choices nexts
   where
     tryVariations (one, others) = concatMap tryVariation $ variations one
@@ -93,7 +95,13 @@ possibilities4 a b c d nexts = concatMap tryVariations $ choices nexts
         valid1 e = interfaces3 (reverse $ edges b !! 2) (edges e !! 0) (edges c !! 3) (reverse $ edges e !! 3)
         valid2 e = interfaces3 (edges b !! 2) (reverse $ edges e !! 0) (reverse $ edges d !! 1) (edges e !! 1)
 
-possibilities5 a b c d e last = [last]
+possibilities5 a b c d e [last] = concatMap tryVariation $ variations last
+  where
+    tryVariation f = if valid1 f && valid2 f && valid3 f && valid4 f then [[f]] else []
+    valid1 f = interfaces3 (reverse $ edges e !! 2) (edges f !! 0) (edges c !! 0) (reverse $ edges f !! 3)
+    valid2 f = interfaces3 (reverse $ edges d !! 0) (edges f !! 1) (edges e !! 2) (reverse $ edges f !! 0)
+    valid3 f = interfaces3 (reverse $ edges a !! 0) (edges f !! 2) (edges d !! 0) (reverse $ edges f !! 1)
+    valid4 f = interfaces3 (reverse $ edges c !! 0) (edges f !! 3) (edges a !! 0) (reverse $ edges f !! 2)
 -- -}
 
 -- pick first
