@@ -1,15 +1,21 @@
+module Pieces where
+
 import Data.List (intercalate)
 
 type Color = Int
 type Voxel = Bool
 newtype Piece = Piece (Color, [Voxel])
 
+type Edge = [Voxel]
+type Edges = [Edge]
+
 instance Show Piece where
   show (Piece (c, vs)) = intercalate "\n" $ map (map showBit) [[0,1,2,3,4], [15,x,x,x,5], [14,x,x,x,6], [13,x,x,x,7], [12,11,10,9,8]]
+    -- (this seems a bit lame)
     where
       x = (-1)
-      showBit (-1) = 'X'
-      showBit n = if (vs !! n) then 'X' else ' '
+      showBit (-1) = '█'
+      showBit n = if (vs !! n) then '█' else ' '
 
 pieces :: [Piece]
 pieces = map (\(c,vs)-> Piece (c, map (=='1') vs)) $ [
