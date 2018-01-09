@@ -1,3 +1,5 @@
+module Solver where
+
 import Pieces
 import Data.List (intercalate, groupBy)
 import Debug.Trace (trace)
