@@ -2,23 +2,28 @@ module Pieces where
 
 import Data.List (intercalate)
 
+type Side = Bool
 type Color = Int
+type Label = Char
 type Voxel = Bool
-newtype Piece = Piece (Color, [Voxel])
+newtype Piece = Piece ((Color, Side, Label), [Voxel])
 
 type Edge = [Voxel]
 type Edges = [Edge]
 
 instance Show Piece where
-  show (Piece (c, vs)) = intercalate "\n" $ map (map showBit) [[0,1,2,3,4], [15,x,x,x,5], [14,x,x,x,6], [13,x,x,x,7], [12,11,10,9,8]]
+  show (Piece ((c,s,l), vs)) = intercalate "\n" $ map (map showBit) [[0,1,2,3,4], [15,x,x,x,5], [14,x,ll,x,6], [13,x,x,x,7], [12,11,10,9,8]]
     -- (this seems a bit lame)
     where
       x = (-1)
-      showBit (-1) = '█'
-      showBit n = if (vs !! n) then '█' else ' '
+      ll = (-2)
+      showBit (-1) = block
+      showBit (-2) = l
+      showBit n = if (vs !! n) then block else ' '
+      block = if s then '█' else '▓'
 
 pieces :: [Piece]
-pieces = map (\(c,vs)-> Piece (c, map (=='1') vs)) $ [
+pieces = zipWith (\idx (c,vs)-> Piece ((c, True, (head . show . (`mod` 6) $ idx)), map (=='1') vs)) [0..] [
   -- red
   (0, "1101011011011100"),
   (0, "1010011000101101"),

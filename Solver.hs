@@ -47,16 +47,15 @@ interfaces3 e1a e1b e2a e2b = corner && line1 && line2
 interface2 edge edge1 = zipWith (||) edge edge1
 
 variations :: Piece -> [Piece]
-variations (Piece (c, vxs)) = map (\vxs -> Piece (c, vxs)) $ vary vxs
+variations (Piece ((c,s,l), vxs)) = (map (\vxs -> Piece ((c,s,l), vxs)) $ rots vxs) ++ (map (\vxs -> Piece ((c,not s,l), vxs)) $ map flip $ rots vxs)
   where
     rots vxs = take 4 $ iterate (rotate 4) vxs
-    vary vxs = rots vxs ++ map flip (rots vxs)
     flip vxs = head vxs : reverse (tail vxs)
 
 possibilities :: Color -> [Net]
 possibilities color = map (Net . (head thisColor :)) $ possibilities2 (head thisColor) (tail thisColor)
   where
-    thisColor = filter (\(Piece (c,_))->c==color) pieces
+    thisColor = filter (\(Piece ((c,s,l),_))->c==color) pieces
 
 possibilities2 :: Piece -> [Piece] -> [[Piece]]
 possibilities2 a nexts = concatMap tryVariations $ choices nexts
