@@ -15,9 +15,7 @@ instance Show Net where
     [empty, show e, empty] ]
     where
       empty = intercalate "\n" $ replicate 5 "     "
-
-append :: String -> String -> String
-append a b = unlines $ zipWith (\a b -> a ++ "  " ++ b) (lines a) (lines b)
+      append a b = unlines $ zipWith (\a b -> a ++ "  " ++ b) (lines a) (lines b)
 
 choices :: [a] -> [(a, [a])]
 choices [] = []
@@ -37,17 +35,19 @@ edges :: Piece -> Edges
 edges (Piece (_,p)) = map (map (p!!)) [[0,1,2,3,4],[4,5,6,7,8],[8,9,10,11,12],[12,13,14,15,0]]
   -- this isn't very general or succinct is it?
 
+-- returns whether two piece edges mesh properly, to form a valid cube edge (with or without corners filled)
 interfaces2 :: Edge -> Edge -> Bool
 interfaces2 edge edge1 = all id $ zipWith (\f (x,y) -> f x y) [nand, xor, xor, xor, nand] $ zip edge edge1
 
+-- takes piece edges (each supplied in the direction radiating out from a single corner)
+-- returns whether they all mesh properly to form a complete valid combination of three pieces
+-- e1a and e1b form one final edge, e2x the other
 interfaces3 e1a e1b e2a e2b = corner && line1 && line2
   where
     line1 = all id $ zipWith (\f (x,y) -> f x y) [ignore, xor, xor, xor, ignore] $ zip e1a e1b
     line2 = all id $ zipWith (\f (x,y) -> f x y) [ignore, xor, xor, xor, ignore] $ zip e2a e2b
     corner = (==1).length $ filter id $ map (!!0) [e1a, e1b, e2a] 
     ignore = \a b-> True
-
-interface2 edge edge1 = zipWith (||) edge edge1
 
 variations :: Piece -> [Piece]
 variations (Piece ((c,s,l), vxs)) = (map (\vxs -> Piece ((c,s,l), vxs)) $ rots vxs) ++ (map (\vxs -> Piece ((c,not s,l), vxs)) $ map flip $ rots vxs)
@@ -113,6 +113,8 @@ possibilities5 a b c d e [lastVariations] = concatMap tryVariation lastVariation
     valid3 f = interfaces3 (reverse $ edges a !! 0) (edges f !! 2) (edges d !! 0) (reverse $ edges f !! 1)
     valid4 f = interfaces3 (reverse $ edges c !! 0) (edges f !! 3) (edges a !! 0) (reverse $ edges f !! 2)
 -- -}
+
+-- All solutions start with the same "base" piece in the same orientation, as starting with any other is equivalent to rotating or inside-outing the entire cube -- not an interesting distinct solution.
 
 -- pick first
 -- match first[0] second[0]
