@@ -5,7 +5,26 @@ import Data.IORef
 import Control.Monad
 import System.Environment (getArgs, getProgName)
 
+import Pieces
+
 data Action = Action (IO Action)
+
+pieceToLines (Piece (_, vs)) = concat $ zipWith linesForRow [0..] [[0,1,2,3,4], [15,x,x,x,5], [14,x,x,x,6], [13,x,x,x,7], [12,11,10,9,8]]
+  where
+    between = 23
+    one = 20
+    linesForRow y r = concat $ zipWith (\x b -> linesIfFilled x y b) [0..] r
+    x = (-1)
+    filled (-1) = True
+    filled b = vs !! b
+    linesIfFilled x y b
+      | filled b = [
+           (vertex3 (x*between) (y*between) 0), (vertex3 (x*between+one) (y*between) 0),
+           (vertex3 (x*between+one) (y*between) 0), (vertex3 (x*between+one) (y*between+one) 0),
+           (vertex3 (x*between+one) (y*between+one) 0), (vertex3 (x*between) (y*between+one) 0),
+           (vertex3 (x*between) (y*between+one) 0), (vertex3 (x*between) (y*between) 0)
+         ]
+      | otherwise = []
 
 main = do
   -- invoke either active or passive drawing loop depending on command line argument
@@ -129,7 +148,8 @@ render lines = do
  --     GL.vertex (vertex3 (-3005) (-3005) (-3005)), GL.vertex (vertex3 3005 3005 3005)
  --   ]
   GL.renderPrimitive GL.Lines $ mapM_
-      (\ (x, y) -> GL.vertex (vertex3 (fromIntegral x) (fromIntegral y) 0)) l
+    (\ (x, y) -> GL.vertex (vertex3 (fromIntegral x) (fromIntegral y) 0)) l
+  GL.renderPrimitive GL.Lines $ mapM_ GL.vertex $ pieceToLines $ head pieces
 
 
 vertex3 :: GLfloat -> GLfloat -> GLfloat -> GL.Vertex3 GLfloat
