@@ -9,21 +9,25 @@ import Pieces
 
 data Action = Action (IO Action)
 
-pieceToLines (Piece (_, vs)) = concat $ zipWith linesForRow [0..] [[0,1,2,3,4], [15,x,x,x,5], [14,x,x,x,6], [13,x,x,x,7], [12,11,10,9,8]]
+pieceToLines (Piece (_, vs)) = concat $ zipWith linesForRow [1..] [[0,1,2,3,4], [15,f,f,f,5], [14,f,f,f,6], [13,f,f,f,7], [12,11,10,9,8]]
   where
-    between = 23
-    one = 20
-    linesForRow y r = concat $ zipWith (\x b -> linesIfFilled x y b) [0..] r
-    x = (-1)
+    between = 210
+    one = 200
+    d = (-14)
+    linesForRow y r = concat $ zipWith (\x b -> linesIfFilled x y b) [1..] r
+    f = (-1)
     filled (-1) = True
     filled b = vs !! b
+    aa x y = vertex3 (x*between) (y*between) d
+    bb x y = vertex3 (x*between+one) (y*between) d
+    cc x y = vertex3 (x*between+one) (y*between+one) d
+    dd x y = vertex3 (x*between) (y*between+one) d
+    aa' x y = vertex3 (x*between) (y*between) (d+1)
+    bb' x y = vertex3 (x*between+one) (y*between) (d+1)
+    cc' x y = vertex3 (x*between+one) (y*between+one) (d+1)
+    dd' x y = vertex3 (x*between) (y*between+one) (d+1)
     linesIfFilled x y b
-      | filled b = [
-           (vertex3 (x*between) (y*between) 0), (vertex3 (x*between+one) (y*between) 0),
-           (vertex3 (x*between+one) (y*between) 0), (vertex3 (x*between+one) (y*between+one) 0),
-           (vertex3 (x*between+one) (y*between+one) 0), (vertex3 (x*between) (y*between+one) 0),
-           (vertex3 (x*between) (y*between+one) 0), (vertex3 (x*between) (y*between) 0)
-         ]
+      | filled b = map (\f -> f x y) [aa,bb,bb',aa', aa,dd,dd',aa']
       | otherwise = []
 
 main = do
@@ -58,7 +62,8 @@ main' run = do
       GL.viewport   $= (GL.Position 0 0, size)
       GL.matrixMode $= GL.Projection
       GL.loadIdentity
-      GL.ortho 0 (realToFrac w) (realToFrac h) 0 (-1) 1
+      --GL.ortho 0 (realToFrac w) (realToFrac h) 0 (-1) 5
+      GL.frustum (-20) (realToFrac w) (realToFrac h) (-20) 4 4000
   -- keep all line strokes as a list of points in an IORef
   lines <- newIORef []
   -- run the main loop
@@ -148,8 +153,8 @@ render lines = do
  --     GL.vertex (vertex3 (-3005) (-3005) (-3005)), GL.vertex (vertex3 3005 3005 3005)
  --   ]
   GL.renderPrimitive GL.Lines $ mapM_
-    (\ (x, y) -> GL.vertex (vertex3 (fromIntegral x) (fromIntegral y) 0)) l
-  GL.renderPrimitive GL.Lines $ mapM_ GL.vertex $ pieceToLines $ head pieces
+    (\ (x, y) -> GL.vertex (vertex3 (fromIntegral x) (fromIntegral y) 1)) l
+  GL.renderPrimitive GL.Quads $ mapM_ GL.vertex $ pieceToLines $ head pieces
 
 
 vertex3 :: GLfloat -> GLfloat -> GLfloat -> GL.Vertex3 GLfloat
