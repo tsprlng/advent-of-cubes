@@ -13,7 +13,7 @@ pieceToLines (Piece (_, vs)) = concat $ zipWith linesForRow [1..] [[0,1,2,3,4], 
   where
     between = 210
     one = 200
-    d = (-14)
+    d = (-5)
     linesForRow y r = concat $ zipWith (\x b -> linesIfFilled x y b) [1..] r
     f = (-1)
     filled (-1) = True
@@ -64,6 +64,8 @@ main' run = do
       GL.loadIdentity
       --GL.ortho 0 (realToFrac w) (realToFrac h) 0 (-1) 5
       GL.frustum (-20) (realToFrac w) (realToFrac h) (-20) 4 4000
+      GL.rotate 0.2 (GL.Vector3 0 1 0 :: GL.Vector3 GL.GLfloat)
+      GL.translate $ GL.Vector3 0 0 (-14::GLfloat)
   -- keep all line strokes as a list of points in an IORef
   lines <- newIORef []
   -- run the main loop
