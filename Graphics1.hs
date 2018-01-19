@@ -11,7 +11,7 @@ data Action = Action (IO Action)
 
 pieceToLines (Piece (_, vs)) = concat $ zipWith linesForRow [1..] [[0,1,2,3,4], [15,f,f,f,5], [14,f,f,f,6], [13,f,f,f,7], [12,11,10,9,8]]
   where
-    between = 210
+    between = 200
     one = 200
     d = (-5)
     linesForRow y r = concat $ zipWith (\x b -> linesIfFilled x y b) [1..] r
@@ -27,7 +27,11 @@ pieceToLines (Piece (_, vs)) = concat $ zipWith linesForRow [1..] [[0,1,2,3,4], 
     cc' x y = vertex3 (x*between+one) (y*between+one) (d+1)
     dd' x y = vertex3 (x*between) (y*between+one) (d+1)
     linesIfFilled x y b
-      | filled b = map (\f -> f x y) [aa,bb,bb',aa', aa,dd,dd',aa']
+      | filled b = map (\f -> f x y) [
+            aa,bb,bb',aa', cc,dd,dd',cc',  -- T/B
+            aa,dd,dd',aa', bb,cc,cc',bb',  -- L/R
+            aa,bb,cc,dd, aa',bb',cc',dd'   -- F/B
+          ]
       | otherwise = []
 
 main = do
@@ -149,7 +153,7 @@ passive lines = do
 render lines = do
   l <- readIORef lines
   GL.clear [GL.ColorBuffer]
-  GL.color $ color3 1 0 0
+  GL.color $ (Color4 1 0 0.4 0.4 :: Color4 GLfloat)
  -- GL.renderPrimitive GL.Lines $ return [
  --     GL.vertex (vertex3 (-3000) (-3000) (-3000)), GL.vertex (vertex3 3000 3000 3000),
  --     GL.vertex (vertex3 (-3005) (-3005) (-3005)), GL.vertex (vertex3 3005 3005 3005)
