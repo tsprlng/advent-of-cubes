@@ -5,9 +5,53 @@ import Data.IORef
 import Control.Monad
 import System.Environment (getArgs, getProgName)
 
+import qualified Data.Map as M
+import Data.Map ((!))
 import Pieces
 
 data Action = Action (IO Action)
+
+type PieceMap = M.Map (Int, Int) Bool
+
+pieceAsMap :: Piece -> PieceMap
+pieceAsMap (Piece (_, vs)) = M.fromList $ concat $ zipWith row [0..] [[0,1,2,3,4], [15,f,f,f,5], [14,f,f,f,6], [13,f,f,f,7], [12,11,10,9,8]]
+  where
+    row = \y cs -> zipWith (\x c -> ((x,y), isFilled c)) [0..] cs
+    f = (-1)
+    isFilled (-1) = True
+    isFilled v = vs !! v
+
+whichFaces :: PieceMap -> M.Map (Int, Int) (Bool, Bool, Bool, Bool, Bool)
+whichFaces pieceMap = M.fromList $ map answer $ M.toList pieceMap
+  where
+    answer ((x,y), self) = ((x,y), (self, should (x, y-1), should (x, y+1), should (x-1, y), should (x+1, y)))
+      where
+        should (x,y) = self && not (M.findWithDefault False (x,y) pieceMap)
+
+pieceToQuads :: Piece -> [Vertex3 GLfloat]
+pieceToQuads piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piece
+  where
+    between = 200
+    one = 200
+    d = (-5)
+
+    aa x y = vertex3 (fromIntegral x *between) (fromIntegral y *between) d
+    bb x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between) d
+    cc x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between+one) d
+    dd x y = vertex3 (fromIntegral x *between) (fromIntegral y *between+one) d
+    aa' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between) (d+200)
+    bb' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between) (d+200)
+    cc' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between+one) (d+200)
+    dd' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between+one) (d+200)
+
+    toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> [Vertex3 GLfloat]
+    toQuads ((x,y), (s, t, b, l, r)) = map (\f -> f x y) $ concat [
+        if s then [aa,bb,cc,dd,aa',bb',cc',dd'] else [],
+        if t then [aa,bb,bb',aa'] else [],
+        if b then [cc,dd,dd',cc'] else [],
+        if l then [aa,dd,dd',aa'] else [],
+        if r then [bb,cc,cc',bb'] else []
+      ]
 
 pieceToLines (Piece (_, vs)) = concat $ zipWith linesForRow [1..] [[0,1,2,3,4], [15,f,f,f,5], [14,f,f,f,6], [13,f,f,f,7], [12,11,10,9,8]]
   where
@@ -22,10 +66,10 @@ pieceToLines (Piece (_, vs)) = concat $ zipWith linesForRow [1..] [[0,1,2,3,4], 
     bb x y = vertex3 (x*between+one) (y*between) d
     cc x y = vertex3 (x*between+one) (y*between+one) d
     dd x y = vertex3 (x*between) (y*between+one) d
-    aa' x y = vertex3 (x*between) (y*between) (d+1)
-    bb' x y = vertex3 (x*between+one) (y*between) (d+1)
-    cc' x y = vertex3 (x*between+one) (y*between+one) (d+1)
-    dd' x y = vertex3 (x*between) (y*between+one) (d+1)
+    aa' x y = vertex3 (x*between) (y*between) (d+200)
+    bb' x y = vertex3 (x*between+one) (y*between) (d+200)
+    cc' x y = vertex3 (x*between+one) (y*between+one) (d+200)
+    dd' x y = vertex3 (x*between) (y*between+one) (d+200)
     linesIfFilled x y b
       | filled b = map (\f -> f x y) [
             aa,bb,bb',aa', cc,dd,dd',cc',  -- T/B
@@ -67,7 +111,8 @@ main' run = do
       GL.matrixMode $= GL.Projection
       GL.loadIdentity
       --GL.ortho 0 (realToFrac w) (realToFrac h) 0 (-1) 5
-      GL.frustum (-20) (realToFrac w) (realToFrac h) (-20) 4 4000
+      GL.frustum (-20) (600) (480) (-20) 4 4000
+      --GL.frustum (-20) (realToFrac w) (realToFrac h) (-20) 4 4000
       GL.rotate 0.2 (GL.Vector3 0 1 0 :: GL.Vector3 GL.GLfloat)
       GL.translate $ GL.Vector3 0 0 (-14::GLfloat)
   -- keep all line strokes as a list of points in an IORef
@@ -138,6 +183,16 @@ passive lines = do
       do
         GLFW.mousePosCallback $= \(Position x y) ->
           do
+
+            GL.loadIdentity
+            --GL.ortho 0 (realToFrac w) (realToFrac h) 0 (-1) 5
+            --GL.frustum (-20) (600) (480) (-20) 4 4000
+            --GL.rotate (0.02*fromIntegral x - 12) (GL.Vector3 0 1 0 :: GL.Vector3 GL.GLfloat)
+            --GL.rotate (0.02*fromIntegral y - 12) (GL.Vector3 1 0 0 :: GL.Vector3 GL.GLfloat)
+            --GL.translate $ GL.Vector3 0 0 (-14::GLfloat)
+
+            perspective 45.0 1.0 4 8000
+            lookAt (Vertex3 (3000 - 100 * fromIntegral x) 0 (-3000) :: Vertex3 GLdouble) (Vertex3 100 100 0 :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
             -- update the line with new ending position
             modifyIORef lines (((x,y):) . tail)
             -- mark screen dirty
@@ -160,7 +215,7 @@ render lines = do
  --   ]
   GL.renderPrimitive GL.Lines $ mapM_
     (\ (x, y) -> GL.vertex (vertex3 (fromIntegral x) (fromIntegral y) 1)) l
-  GL.renderPrimitive GL.Quads $ mapM_ GL.vertex $ pieceToLines $ head pieces
+  GL.renderPrimitive GL.Quads $ mapM_ GL.vertex $ pieceToQuads $ head pieces
 
 
 vertex3 :: GLfloat -> GLfloat -> GLfloat -> GL.Vertex3 GLfloat
