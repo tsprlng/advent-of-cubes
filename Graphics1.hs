@@ -28,6 +28,30 @@ whichFaces pieceMap = M.fromList $ map answer $ M.toList pieceMap
       where
         should (x,y) = self && not (M.findWithDefault False (x,y) pieceMap)
 
+pieceToLines :: Piece -> [Vertex3 GLfloat]
+pieceToLines piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piece
+  where
+    between = 200
+    one = 200
+    d = (-5)
+
+    aa x y = vertex3 (fromIntegral x *between) (fromIntegral y *between) d
+    bb x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between) d
+    cc x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between+one) d
+    dd x y = vertex3 (fromIntegral x *between) (fromIntegral y *between+one) d
+    aa' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between) (d+200)
+    bb' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between) (d+200)
+    cc' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between+one) (d+200)
+    dd' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between+one) (d+200)
+
+    toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> [Vertex3 GLfloat]
+    toQuads ((x,y), (s, t, b, l, r)) = map (\f -> f x y) $ concat [
+        if t then [aa,bb,bb,bb',bb',aa',aa',aa] else [],
+        if b then [cc,dd,dd,dd',dd',cc',cc',cc] else [],
+        if l then [aa,dd,dd,dd',dd',aa',aa',aa] else [],
+        if r then [bb,cc,cc,cc',cc',bb',bb',bb] else []
+      ]
+
 pieceToQuads :: Piece -> [Vertex3 GLfloat]
 pieceToQuads piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piece
   where
@@ -148,8 +172,7 @@ passive lines = do
         GLFW.mouseButtonCallback $= \b s ->
             when (b == GLFW.ButtonLeft && s == GLFW.Press) $
               do
-                -- when left mouse button is pressed, add the point
-                -- to lines and switch to waitForRelease action.
+                -- when left mouse button is pressed, switch to waitForRelease action.
                 (GL.Position x y) <- GL.get GLFW.mousePos
                 modifyIORef lines (((x,y):) . ((x,y):))
                 waitForRelease dirty
@@ -167,9 +190,7 @@ passive lines = do
             --GL.translate $ GL.Vector3 0 0 (-14::GLfloat)
 
             perspective 45.0 1.0 4 8000
-            lookAt (Vertex3 (3000 - 100 * fromIntegral x) 0 (-3000) :: Vertex3 GLdouble) (Vertex3 100 100 0 :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
-            -- update the line with new ending position
-            modifyIORef lines (((x,y):) . tail)
+            lookAt (Vertex3 (6000 - 100 * fromIntegral x) (6000 - 100 * fromIntegral y) (-3000) :: Vertex3 GLdouble) (Vertex3 100 100 0 :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
             -- mark screen dirty
             writeIORef dirty True
 
@@ -183,13 +204,15 @@ passive lines = do
 render lines = do
   l <- readIORef lines
   GL.clear [GL.ColorBuffer]
-  GL.color $ (Color4 1 0 0.4 0.4 :: Color4 GLfloat)
+  GL.color $ (Color4 1 0 0.4 1 :: Color4 GLfloat)
  -- GL.renderPrimitive GL.Lines $ return [
  --     GL.vertex (vertex3 (-3000) (-3000) (-3000)), GL.vertex (vertex3 3000 3000 3000),
  --     GL.vertex (vertex3 (-3005) (-3005) (-3005)), GL.vertex (vertex3 3005 3005 3005)
  --   ]
   GL.renderPrimitive GL.Lines $ mapM_
     (\ (x, y) -> GL.vertex (vertex3 (fromIntegral x) (fromIntegral y) 1)) l
+  GL.renderPrimitive GL.Lines $ mapM_ GL.vertex $ pieceToLines $ head pieces
+  GL.color $ (Color4 1 0 0.4 0.4 :: Color4 GLfloat)
   GL.renderPrimitive GL.Quads $ mapM_ GL.vertex $ pieceToQuads $ head pieces
 
 
