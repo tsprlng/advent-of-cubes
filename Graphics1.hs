@@ -53,31 +53,6 @@ pieceToQuads piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piec
         if r then [bb,cc,cc',bb'] else []
       ]
 
-pieceToLines (Piece (_, vs)) = concat $ zipWith linesForRow [1..] [[0,1,2,3,4], [15,f,f,f,5], [14,f,f,f,6], [13,f,f,f,7], [12,11,10,9,8]]
-  where
-    between = 200
-    one = 200
-    d = (-5)
-    linesForRow y r = concat $ zipWith (\x b -> linesIfFilled x y b) [1..] r
-    f = (-1)
-    filled (-1) = True
-    filled b = vs !! b
-    aa x y = vertex3 (x*between) (y*between) d
-    bb x y = vertex3 (x*between+one) (y*between) d
-    cc x y = vertex3 (x*between+one) (y*between+one) d
-    dd x y = vertex3 (x*between) (y*between+one) d
-    aa' x y = vertex3 (x*between) (y*between) (d+200)
-    bb' x y = vertex3 (x*between+one) (y*between) (d+200)
-    cc' x y = vertex3 (x*between+one) (y*between+one) (d+200)
-    dd' x y = vertex3 (x*between) (y*between+one) (d+200)
-    linesIfFilled x y b
-      | filled b = map (\f -> f x y) [
-            aa,bb,bb',aa', cc,dd,dd',cc',  -- T/B
-            aa,dd,dd',aa', bb,cc,cc',bb',  -- L/R
-            aa,bb,cc,dd, aa',bb',cc',dd'   -- F/B
-          ]
-      | otherwise = []
-
 main = do
   -- invoke either active or passive drawing loop depending on command line argument
   args <- getArgs
