@@ -73,7 +73,8 @@ pieceToQuads piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piec
 
     toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> [Vertex3 GLfloat]
     toQuads info@((x,y), (s, t, b, l, r)) = map (\f -> f info) $ concat [
-        if s then [aa,bb,cc,dd,aa',bb',cc',dd'] else [],
+        --if s then [aa,bb,cc,dd,aa',bb',cc',dd'] else [],
+        if s then [aa,bb,cc,dd] else [],
         if t then [aa,bb,bb',aa'] else [],
         if b then [cc,dd,dd',cc'] else [],
         if l then [aa,dd,dd',aa'] else [],
@@ -242,7 +243,7 @@ render chosenOne = do
   flip mapM_ (zip pcs transforms) $ \(piece,transform) -> do
 
     GL.color $ lineColor piece
-    GL.renderPrimitive GL.Lines $ mapM_ GL.vertex $ map transform $ pieceToLines piece
+    --GL.renderPrimitive GL.Lines $ mapM_ GL.vertex $ map transform $ pieceToLines piece
     GL.color $ faceColor piece
     GL.renderPrimitive GL.Quads $ mapM_ GL.vertex $ map transform $ pieceToQuads piece
 
