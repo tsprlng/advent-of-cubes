@@ -29,22 +29,28 @@ whichFaces pieceMap = M.fromList $ map answer $ M.toList pieceMap
       where
         should (x,y) = self && not (M.findWithDefault False (x,y) pieceMap)
 
+type NumShrinker = GLfloat -> GLfloat -> GLfloat
+shrink :: (Bool, NumShrinker, Bool, NumShrinker) -> Vertex3 GLfloat -> Vertex3 GLfloat
+shrink (xc, xt, yc, yt) (Vertex3 x y z) = Vertex3 (if xc then xt x sz else x) (if yc then yt y sz else y) z
+  where
+    sz = 18.0
+
 pieceToLines :: Piece -> [Vertex3 GLfloat]
 pieceToLines piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piece
   where
     sz = 200
 
-    aa  x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      0
-    bb  x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      0
-    cc  x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) 0
-    dd  x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) 0
-    aa' x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      sz
-    bb' x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      sz
-    cc' x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) sz
-    dd' x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) sz
+    aa  ((x,y),(s,t,b,l,r)) = shrink (l,(+),t,(+)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      0
+    bb  ((x,y),(s,t,b,l,r)) = shrink (r,(-),t,(+)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      0
+    cc  ((x,y),(s,t,b,l,r)) = shrink (r,(-),b,(-)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) 0
+    dd  ((x,y),(s,t,b,l,r)) = shrink (l,(+),b,(-)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) 0
+    aa' ((x,y),(s,t,b,l,r)) = shrink (l,(+),t,(+)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      sz
+    bb' ((x,y),(s,t,b,l,r)) = shrink (r,(-),t,(+)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      sz
+    cc' ((x,y),(s,t,b,l,r)) = shrink (r,(-),b,(-)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) sz
+    dd' ((x,y),(s,t,b,l,r)) = shrink (l,(+),b,(-)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) sz
 
     toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> [Vertex3 GLfloat]
-    toQuads ((x,y), (s, t, b, l, r)) = map (\f -> f x y) $ concat [
+    toQuads info@((x,y), (s, t, b, l, r)) = map (\f -> f info) $ concat [
         if t then [aa,bb,bb,bb',bb',aa',aa',aa] else [],
         if b then [cc,dd,dd,dd',dd',cc',cc',cc] else [],
         if l then [aa,dd,dd,dd',dd',aa',aa',aa] else [],
@@ -56,17 +62,17 @@ pieceToQuads piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piec
   where
     sz = 200
 
-    aa  x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      0
-    bb  x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      0
-    cc  x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) 0
-    dd  x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) 0
-    aa' x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      sz
-    bb' x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      sz
-    cc' x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) sz
-    dd' x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) sz
+    aa  ((x,y),(s,t,b,l,r)) = shrink (l,(+),t,(+)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      0
+    bb  ((x,y),(s,t,b,l,r)) = shrink (r,(-),t,(+)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      0
+    cc  ((x,y),(s,t,b,l,r)) = shrink (r,(-),b,(-)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) 0
+    dd  ((x,y),(s,t,b,l,r)) = shrink (l,(+),b,(-)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) 0
+    aa' ((x,y),(s,t,b,l,r)) = shrink (l,(+),t,(+)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      sz
+    bb' ((x,y),(s,t,b,l,r)) = shrink (r,(-),t,(+)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      sz
+    cc' ((x,y),(s,t,b,l,r)) = shrink (r,(-),b,(-)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) sz
+    dd' ((x,y),(s,t,b,l,r)) = shrink (l,(+),b,(-)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) sz
 
     toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> [Vertex3 GLfloat]
-    toQuads ((x,y), (s, t, b, l, r)) = map (\f -> f x y) $ concat [
+    toQuads info@((x,y), (s, t, b, l, r)) = map (\f -> f info) $ concat [
         if s then [aa,bb,cc,dd,aa',bb',cc',dd'] else [],
         if t then [aa,bb,bb',aa'] else [],
         if b then [cc,dd,dd',cc'] else [],
