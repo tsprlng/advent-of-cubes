@@ -91,9 +91,10 @@ main = do
 main' run = do
   GLFW.initialize
   -- open window
-  GLFW.openWindow (GL.Size 800 600) [GLFW.DisplayAlphaBits 8] GLFW.Window
+  GLFW.openWindow (GL.Size 800 600) [GLFW.DisplayAlphaBits 8, GLFW.DisplayDepthBits 16] GLFW.Window
   GLFW.windowTitle $= "World of Foam Cubes"
   GL.shadeModel    $= GL.Smooth
+  GL.depthFunc $= Just Less
   -- enable antialiasing
   GL.lineSmooth $= GL.Enabled
   GL.blend      $= GL.Enabled
@@ -226,7 +227,7 @@ transforms = [
 
 render lines = do
   l <- readIORef lines
-  GL.clear [GL.ColorBuffer]
+  GL.clear [GL.ColorBuffer, GL.DepthBuffer]
 
   let soln = head $ allColorPossibilities
   let pcs = netPieces soln
