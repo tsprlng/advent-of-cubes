@@ -17,6 +17,8 @@ instance Show Net where
       empty = intercalate "\n" $ replicate 5 "     "
       append a b = unlines $ zipWith (\a b -> a ++ "  " ++ b) (lines a) (lines b)
 
+netPieces (Net ps) = ps
+
 choices :: [a] -> [(a, [a])]
 choices [] = []
 choices (x:xs) = (x, xs) : map (\(c,xs) -> (c, x:xs)) (choices xs)

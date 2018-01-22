@@ -8,6 +8,7 @@ import System.Environment (getArgs, getProgName)
 import qualified Data.Map as M
 import Data.Map ((!))
 import Pieces
+import Solver (allColorPossibilities, netPieces)
 
 data Action = Action (IO Action)
 
@@ -104,6 +105,7 @@ main' run = do
   -- set 2D orthogonal view inside windowSizeCallback because
   -- any change to the Window size should result in different
   -- OpenGL Viewport.
+  aspect <- newIORef 1.0
   GLFW.windowSizeCallback $= \ size@(GL.Size w h) ->
     do
       GL.viewport   $= (GL.Position 0 0, size)
@@ -114,15 +116,17 @@ main' run = do
       --GL.frustum (-20) (realToFrac w) (realToFrac h) (-20) 4 4000
       GL.rotate 0.2 (GL.Vector3 0 1 0 :: GL.Vector3 GL.GLfloat)
       GL.translate $ GL.Vector3 0 0 (-14::GLfloat)
+
+      writeIORef aspect (fromIntegral w / fromIntegral h)
   -- keep all line strokes as a list of points in an IORef
   lines <- newIORef []
   -- run the main loop
-  run lines
+  run lines aspect
   -- finish up
   GLFW.closeWindow
   GLFW.terminate
 
-passive lines = do
+passive lines aspect = do
   -- disable auto polling in swapBuffers
   GLFW.disableSpecial GLFW.AutoPollEvent
 
@@ -189,7 +193,8 @@ passive lines = do
             --GL.rotate (0.02*fromIntegral y - 12) (GL.Vector3 1 0 0 :: GL.Vector3 GL.GLfloat)
             --GL.translate $ GL.Vector3 0 0 (-14::GLfloat)
 
-            perspective 45.0 1.0 4 8000
+            a <- readIORef aspect
+            perspective 45.0 a 4 8000
             lookAt (Vertex3 (6000 - 100 * fromIntegral x) (6000 - 100 * fromIntegral y) (-3000) :: Vertex3 GLdouble) (Vertex3 100 100 0 :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
             -- mark screen dirty
             writeIORef dirty True
@@ -200,20 +205,38 @@ passive lines = do
             when (b == GLFW.ButtonLeft && s == GLFW.Release) $
               waitForPress dirty
 
+lineColor, faceColor :: Piece -> Color4 GLfloat
+lineColor (Piece ((0,_,_),_)) = Color4 0.8 0.2 0.22 1
+lineColor (Piece ((1,_,_),_)) = Color4 1 1 0.4 1
+lineColor (Piece ((2,_,_),_)) = Color4 0.8 0.5 0.2 1
+lineColor (Piece ((3,_,_),_)) = Color4 0.2 0.8 0.2 1
+lineColor (Piece ((4,_,_),_)) = Color4 0.2 0.2 0.6 1
+lineColor (Piece ((5,_,_),_)) = Color4 0.6 0.1 0.44 1
+faceColor piece@(Piece ((c,_,_),_)) = (\(Color4 r g b a) -> Color4 r g b 0.6) $ lineColor piece
+
+--transforms :: [ (Vertex3 GLfloat -> Vertex3 GLfloat) ]
+transforms = [
+    \(Vertex3 x y z) -> Vertex3 (1000-x) (1000-y) z,
+    \(Vertex3 x y z) -> Vertex3 (1000-x) z (200-y),
+    \(Vertex3 x y z) -> Vertex3 (1000-z) (1000-y) (200-x),
+    \(Vertex3 x y z) -> Vertex3 z (1000-y) (200-x),
+    \(Vertex3 x y z) -> Vertex3 x (y) (-600-z),
+    \(Vertex3 x y z) -> Vertex3 (1000-x) (1000-z) (y-800)
+  ]
 
 render lines = do
   l <- readIORef lines
   GL.clear [GL.ColorBuffer]
-  GL.color $ (Color4 1 0 0.4 1 :: Color4 GLfloat)
- -- GL.renderPrimitive GL.Lines $ return [
- --     GL.vertex (vertex3 (-3000) (-3000) (-3000)), GL.vertex (vertex3 3000 3000 3000),
- --     GL.vertex (vertex3 (-3005) (-3005) (-3005)), GL.vertex (vertex3 3005 3005 3005)
- --   ]
-  GL.renderPrimitive GL.Lines $ mapM_
-    (\ (x, y) -> GL.vertex (vertex3 (fromIntegral x) (fromIntegral y) 1)) l
-  GL.renderPrimitive GL.Lines $ mapM_ GL.vertex $ pieceToLines $ head pieces
-  GL.color $ (Color4 1 0 0.4 0.4 :: Color4 GLfloat)
-  GL.renderPrimitive GL.Quads $ mapM_ GL.vertex $ pieceToQuads $ head pieces
+
+  let soln = head $ allColorPossibilities
+  let pcs = netPieces soln
+
+  flip mapM_ (zip pcs transforms) $ \(piece,transform) -> do
+
+    GL.color $ lineColor piece
+    GL.renderPrimitive GL.Lines $ mapM_ GL.vertex $ map transform $ pieceToLines piece
+    GL.color $ faceColor piece
+    GL.renderPrimitive GL.Quads $ mapM_ GL.vertex $ map transform $ pieceToQuads piece
 
 
 vertex3 :: GLfloat -> GLfloat -> GLfloat -> GL.Vertex3 GLfloat
