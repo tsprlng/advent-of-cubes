@@ -1,7 +1,7 @@
 module Solver where
 
 import Pieces
-import Data.List (intercalate, groupBy)
+import Data.List (intercalate, groupBy, sortOn)
 import Debug.Trace (trace)
 
 newtype Net = Net [Piece]
@@ -51,6 +51,12 @@ interfaces3 e1a e1b e2a e2b = corner && line1 && line2
     corner = (==1).length $ filter id $ map (!!0) [e1a, e1b, e2a] 
     ignore = \a b-> True
 
+culledVariations :: Piece -> [Piece]
+culledVariations piece = map head $ groupBy equalvxs $ sortOn vxs $ variations piece
+  where
+    equalvxs (Piece (_, vxsa)) (Piece (_, vxsb)) = vxsa == vxsb
+    vxs (Piece (_, vxss)) = vxss
+
 variations :: Piece -> [Piece]
 variations (Piece ((c,s,l), vxs)) = (map (\vxs -> Piece ((c,s,l), vxs)) $ rots vxs) ++ (map (\vxs -> Piece ((c,not s,l), vxs)) $ map flip $ rots vxs)
   where
@@ -62,11 +68,11 @@ groupsOfColorPieces = groupBy (\(Piece ((c1,_,_),_)) (Piece ((c2,_,_),_)) -> c1=
 allColorPossibilities :: [Net]
 allColorPossibilities = concatMap tryPiece (head groupsOfColorPieces)
   where
-    tryPiece p = map (Net . (p:)) $ possibilities2 p $ map (concatMap variations) (tail groupsOfColorPieces)
+    tryPiece p = map (Net . (p:)) $ possibilities2 p $ map (concatMap culledVariations) (tail groupsOfColorPieces)
 
 
 possibilities :: Color -> [Net]
-possibilities color = map (Net . (head thisColor :)) $ possibilities2 (head thisColor) (map variations $ tail thisColor)
+possibilities color = map (Net . (head thisColor :)) $ possibilities2 (head thisColor) (map culledVariations $ tail thisColor)
   where
     thisColor = filter (\(Piece ((c,s,l),_))->c==color) pieces
 

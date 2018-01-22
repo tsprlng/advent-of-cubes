@@ -40,10 +40,10 @@ pieceToLines piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piec
     bb x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between) d
     cc x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between+one) d
     dd x y = vertex3 (fromIntegral x *between) (fromIntegral y *between+one) d
-    aa' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between) (d+200)
-    bb' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between) (d+200)
-    cc' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between+one) (d+200)
-    dd' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between+one) (d+200)
+    aa' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between) (d+one)
+    bb' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between) (d+one)
+    cc' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between+one) (d+one)
+    dd' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between+one) (d+one)
 
     toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> [Vertex3 GLfloat]
     toQuads ((x,y), (s, t, b, l, r)) = map (\f -> f x y) $ concat [
@@ -64,10 +64,10 @@ pieceToQuads piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piec
     bb x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between) d
     cc x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between+one) d
     dd x y = vertex3 (fromIntegral x *between) (fromIntegral y *between+one) d
-    aa' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between) (d+200)
-    bb' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between) (d+200)
-    cc' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between+one) (d+200)
-    dd' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between+one) (d+200)
+    aa' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between) (d+one)
+    bb' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between) (d+one)
+    cc' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between+one) (d+one)
+    dd' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between+one) (d+one)
 
     toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> [Vertex3 GLfloat]
     toQuads ((x,y), (s, t, b, l, r)) = map (\f -> f x y) $ concat [
@@ -92,7 +92,7 @@ main' run = do
   GLFW.initialize
   -- open window
   GLFW.openWindow (GL.Size 800 600) [GLFW.DisplayAlphaBits 8, GLFW.DisplayDepthBits 16] GLFW.Window
-  GLFW.windowTitle $= "World of Foam Cubes"
+  GLFW.windowTitle $= "Cube 0 - World of Foam Cubes"
   GL.shadeModel    $= GL.Smooth
   GL.depthFunc $= Just Less
   -- enable antialiasing
@@ -120,14 +120,14 @@ main' run = do
 
       writeIORef aspect (fromIntegral w / fromIntegral h)
   -- keep all line strokes as a list of points in an IORef
-  lines <- newIORef []
+  chosenOne <- newIORef 0
   -- run the main loop
-  run lines aspect
+  run chosenOne aspect
   -- finish up
   GLFW.closeWindow
   GLFW.terminate
 
-passive lines aspect = do
+passive chosenOne aspect = do
   -- disable auto polling in swapBuffers
   GLFW.disableSpecial GLFW.AutoPollEvent
 
@@ -143,6 +143,12 @@ passive lines aspect = do
 
   -- use key callback to track whether ESC is pressed
   GLFW.keyCallback $= \k s -> do
+     when (k == (GLFW.CharKey 'C') && s == GLFW.Press) $ do
+        which <- readIORef chosenOne
+        let next = if which + 1 == length allColorPossibilities then 0 else which + 1
+        writeIORef chosenOne next
+        GLFW.windowTitle $= "Cube " ++ show next ++ " - World of Foam Cubes"
+        writeIORef dirty True
      when (k == (GLFW.CharKey 'Q') && s == GLFW.Press) $
         writeIORef quit True
      when (fromEnum k == fromEnum GLFW.ESC && s == GLFW.Press) $
@@ -162,7 +168,7 @@ passive lines aspect = do
         d <- readIORef dirty
 
         when d $
-          render lines >> GLFW.swapBuffers
+          render chosenOne >> GLFW.swapBuffers
 
         writeIORef dirty False
         -- check if we need to quit the loop
@@ -179,7 +185,6 @@ passive lines aspect = do
               do
                 -- when left mouse button is pressed, switch to waitForRelease action.
                 (GL.Position x y) <- GL.get GLFW.mousePos
-                modifyIORef lines (((x,y):) . ((x,y):))
                 waitForRelease dirty
 
     waitForRelease dirty =
@@ -195,7 +200,7 @@ passive lines aspect = do
             --GL.translate $ GL.Vector3 0 0 (-14::GLfloat)
 
             a <- readIORef aspect
-            perspective 45.0 a 4 8000
+            perspective 45.0 a 4 20000
             lookAt (Vertex3 (6000 - 100 * fromIntegral x) (6000 - 100 * fromIntegral y) (-3000) :: Vertex3 GLdouble) (Vertex3 100 100 0 :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
             -- mark screen dirty
             writeIORef dirty True
@@ -213,23 +218,23 @@ lineColor (Piece ((2,_,_),_)) = Color4 0.8 0.5 0.2 1
 lineColor (Piece ((3,_,_),_)) = Color4 0.2 0.8 0.2 1
 lineColor (Piece ((4,_,_),_)) = Color4 0.2 0.2 0.6 1
 lineColor (Piece ((5,_,_),_)) = Color4 0.6 0.1 0.44 1
-faceColor piece@(Piece ((c,_,_),_)) = (\(Color4 r g b a) -> Color4 r g b 0.6) $ lineColor piece
+faceColor piece@(Piece ((c,_,_),_)) = (\(Color4 r g b a) -> Color4 r g b 0.68) $ lineColor piece
 
 --transforms :: [ (Vertex3 GLfloat -> Vertex3 GLfloat) ]
 transforms = [
     \(Vertex3 x y z) -> Vertex3 (1000-x) (1000-y) z,
     \(Vertex3 x y z) -> Vertex3 (1000-x) z (200-y),
-    \(Vertex3 x y z) -> Vertex3 (1000-z) (1000-y) (200-x),
+    \(Vertex3 x y z) -> Vertex3 (1000-z) (1000-y) (x-800),
     \(Vertex3 x y z) -> Vertex3 z (1000-y) (200-x),
-    \(Vertex3 x y z) -> Vertex3 x (y) (-600-z),
+    \(Vertex3 x y z) -> Vertex3 (1000-x) (y) (-600-z),
     \(Vertex3 x y z) -> Vertex3 (1000-x) (1000-z) (y-800)
   ]
 
-render lines = do
-  l <- readIORef lines
+render chosenOne = do
+  l <- readIORef chosenOne
   GL.clear [GL.ColorBuffer, GL.DepthBuffer]
 
-  let soln = head $ allColorPossibilities
+  let soln = allColorPossibilities !! l
   let pcs = netPieces soln
 
   flip mapM_ (zip pcs transforms) $ \(piece,transform) -> do
