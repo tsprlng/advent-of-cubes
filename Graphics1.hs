@@ -32,18 +32,16 @@ whichFaces pieceMap = M.fromList $ map answer $ M.toList pieceMap
 pieceToLines :: Piece -> [Vertex3 GLfloat]
 pieceToLines piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piece
   where
-    between = 200
-    one = 200
-    d = (-5)
+    sz = 200
 
-    aa x y = vertex3 (fromIntegral x *between) (fromIntegral y *between) d
-    bb x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between) d
-    cc x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between+one) d
-    dd x y = vertex3 (fromIntegral x *between) (fromIntegral y *between+one) d
-    aa' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between) (d+one)
-    bb' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between) (d+one)
-    cc' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between+one) (d+one)
-    dd' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between+one) (d+one)
+    aa  x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      0
+    bb  x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      0
+    cc  x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) 0
+    dd  x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) 0
+    aa' x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      sz
+    bb' x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      sz
+    cc' x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) sz
+    dd' x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) sz
 
     toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> [Vertex3 GLfloat]
     toQuads ((x,y), (s, t, b, l, r)) = map (\f -> f x y) $ concat [
@@ -56,18 +54,16 @@ pieceToLines piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piec
 pieceToQuads :: Piece -> [Vertex3 GLfloat]
 pieceToQuads piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piece
   where
-    between = 200
-    one = 200
-    d = (-5)
+    sz = 200
 
-    aa x y = vertex3 (fromIntegral x *between) (fromIntegral y *between) d
-    bb x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between) d
-    cc x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between+one) d
-    dd x y = vertex3 (fromIntegral x *between) (fromIntegral y *between+one) d
-    aa' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between) (d+one)
-    bb' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between) (d+one)
-    cc' x y = vertex3 (fromIntegral x *between+one) (fromIntegral y *between+one) (d+one)
-    dd' x y = vertex3 (fromIntegral x *between) (fromIntegral y *between+one) (d+one)
+    aa  x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      0
+    bb  x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      0
+    cc  x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) 0
+    dd  x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) 0
+    aa' x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      sz
+    bb' x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      sz
+    cc' x y = vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) sz
+    dd' x y = vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) sz
 
     toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> [Vertex3 GLfloat]
     toQuads ((x,y), (s, t, b, l, r)) = map (\f -> f x y) $ concat [
