@@ -8,7 +8,7 @@ import System.Environment (getArgs, getProgName)
 import qualified Data.Map as M
 import Data.Map ((!))
 import Pieces
-import Solver (allColorPossibilities, netPieces)
+import Solver (possibilities, allColorPossibilities, netPieces)
 
 data Action = Action (IO Action)
 
@@ -91,13 +91,16 @@ main = do
   -- invoke either active or passive drawing loop depending on command line argument
   args <- getArgs
   prog <- getProgName
-  main' passive
+  case args of
+    [] -> main' passive allColorPossibilities
+    [n] -> main' passive (possibilities (read n))
+  --main' passive
 --  case args of
 --    ["active"]  -> putStrLn "Running in active mode" >> main' active
 --    ["passive"] -> putStrLn "Running in passive mode" >> main' passive
 --    _ -> putStrLn $ "USAGE: " ++ prog ++ " [active|passive]"
 
-main' run = do
+main' run possibilities = do
   GLFW.initialize
   -- open window
   GLFW.openWindowHint FSAASamples 4
@@ -132,13 +135,14 @@ main' run = do
       writeIORef aspect (fromIntegral w / fromIntegral h)
   -- keep all line strokes as a list of points in an IORef
   chosenOne <- newIORef 0
+  drawLines <- newIORef True
   -- run the main loop
-  run chosenOne aspect
+  run possibilities drawLines chosenOne aspect
   -- finish up
   GLFW.closeWindow
   GLFW.terminate
 
-passive chosenOne aspect = do
+passive possibilities drawLines chosenOne aspect = do
   -- disable auto polling in swapBuffers
   GLFW.disableSpecial GLFW.AutoPollEvent
 
@@ -154,9 +158,12 @@ passive chosenOne aspect = do
 
   -- use key callback to track whether ESC is pressed
   GLFW.keyCallback $= \k s -> do
+     when (k == (GLFW.CharKey 'L') && s == GLFW.Press) $ do
+        drawLines $~! not
+        writeIORef dirty True
      when (k == (GLFW.CharKey 'C') && s == GLFW.Press) $ do
         which <- readIORef chosenOne
-        let next = if which + 1 == length allColorPossibilities then 0 else which + 1
+        let next = if which + 1 == length possibilities then 0 else which + 1
         writeIORef chosenOne next
         GLFW.windowTitle $= "Cube " ++ show next ++ " - World of Foam Cubes"
         writeIORef dirty True
@@ -179,7 +186,7 @@ passive chosenOne aspect = do
         d <- readIORef dirty
 
         when d $
-          render chosenOne >> GLFW.swapBuffers
+          render possibilities drawLines chosenOne >> GLFW.swapBuffers
 
         writeIORef dirty False
         -- check if we need to quit the loop
@@ -241,17 +248,20 @@ transforms = [
     \(Vertex3 x y z) -> Vertex3 (1000-x) (1000-z) (y-800)
   ]
 
-render chosenOne = do
+render possibilities drawLines chosenOne = do
   l <- readIORef chosenOne
   GL.clear [GL.ColorBuffer, GL.DepthBuffer]
 
-  let soln = allColorPossibilities !! l
+  let soln = possibilities !! l
   let pcs = netPieces soln
+
+  lines <- readIORef drawLines
 
   flip mapM_ (zip pcs transforms) $ \(piece,transform) -> do
 
-    GL.color $ lineColor piece
-    GL.renderPrimitive GL.Lines $ mapM_ GL.vertex $ map transform $ pieceToLines piece
+    when lines $ do
+      GL.color $ lineColor piece
+      GL.renderPrimitive GL.Lines $ mapM_ GL.vertex $ map transform $ pieceToLines piece
     GL.color $ faceColor piece
     GL.renderPrimitive GL.Quads $ mapM_ GL.vertex $ map transform $ pieceToQuads piece
 
