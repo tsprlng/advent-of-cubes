@@ -30,10 +30,6 @@ whichFaces pieceMap = M.fromList $ map answer $ M.toList pieceMap
         should (x,y) = self && not (M.findWithDefault False (x,y) pieceMap)
 
 type NumShrinker = GLfloat -> GLfloat -> GLfloat
-shrink :: (Bool, NumShrinker, Bool, NumShrinker) -> Vertex3 GLfloat -> Vertex3 GLfloat
-shrink (xc, xt, yc, yt) (Vertex3 x y z) = Vertex3 (if xc then xt x sz else x) (if yc then yt y sz else y) z
-  where
-    sz = 18.0
 
 pieceToLines :: Piece -> [Vertex3 GLfloat]
 pieceToLines piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piece
@@ -56,6 +52,11 @@ pieceToLines piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piec
         if l then [aa,dd,dd,dd',dd',aa',aa',aa] else [],
         if r then [bb,cc,cc,cc',cc',bb',bb',bb] else []
       ]
+
+    shrink :: (Bool, NumShrinker, Bool, NumShrinker) -> Vertex3 GLfloat -> Vertex3 GLfloat
+    shrink (xc, xt, yc, yt) (Vertex3 x y z) = Vertex3 (if xc then xt x sz else x) (if yc then yt y sz else y) z
+      where
+        sz = 18
 
 pieceToQuads :: Piece -> [Vertex3 GLfloat]
 pieceToQuads piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piece
@@ -81,6 +82,11 @@ pieceToQuads piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piec
         if r then [bb,cc,cc',bb'] else []
       ]
 
+    shrink :: (Bool, NumShrinker, Bool, NumShrinker) -> Vertex3 GLfloat -> Vertex3 GLfloat
+    shrink (xc, xt, yc, yt) (Vertex3 x y z) = Vertex3 (if xc then xt x sz else x) (if yc then yt y sz else y) z
+      where
+        sz = 18.0
+
 main = do
   -- invoke either active or passive drawing loop depending on command line argument
   args <- getArgs
@@ -94,15 +100,17 @@ main = do
 main' run = do
   GLFW.initialize
   -- open window
+  GLFW.openWindowHint FSAASamples 4
   GLFW.openWindow (GL.Size 800 600) [GLFW.DisplayAlphaBits 8, GLFW.DisplayDepthBits 16] GLFW.Window
   GLFW.windowTitle $= "Cube 0 - World of Foam Cubes"
   GL.shadeModel    $= GL.Smooth
   GL.depthFunc $= Just Less
   -- enable antialiasing
+  GL.multisample $= GL.Enabled
   GL.lineSmooth $= GL.Enabled
   GL.blend      $= GL.Enabled
   GL.blendFunc  $= (GL.SrcAlpha, GL.OneMinusSrcAlpha)
-  GL.lineWidth  $= 1.5
+  GL.lineWidth  $= 1.4
   -- set the color to clear background
   GL.clearColor $= Color4 0 0 0 0
 
@@ -243,7 +251,7 @@ render chosenOne = do
   flip mapM_ (zip pcs transforms) $ \(piece,transform) -> do
 
     GL.color $ lineColor piece
-    --GL.renderPrimitive GL.Lines $ mapM_ GL.vertex $ map transform $ pieceToLines piece
+    GL.renderPrimitive GL.Lines $ mapM_ GL.vertex $ map transform $ pieceToLines piece
     GL.color $ faceColor piece
     GL.renderPrimitive GL.Quads $ mapM_ GL.vertex $ map transform $ pieceToQuads piece
 
