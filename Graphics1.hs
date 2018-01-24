@@ -58,8 +58,12 @@ pieceToLines piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piec
       where
         sz = 18
 
-pieceToQuads :: Piece -> [Vertex3 GLfloat]
-pieceToQuads piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piece
+pairConcat :: [([a],[b])] -> ([a],[b])
+pairConcat [] = ([],[])
+pairConcat ((a,b):xs) = (\(as,bs) -> (a++as, b++bs)) $ pairConcat xs
+
+pieceToQuads :: Piece -> ([Vertex3 GLfloat], [Vertex3 GLfloat])
+pieceToQuads piece = pairConcat $ map toQuads $ M.toList $ whichFaces $ pieceAsMap piece
   where
     sz = 200
 
@@ -72,15 +76,18 @@ pieceToQuads piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piec
     cc' ((x,y),(s,t,b,l,r)) = shrink (r,(-),b,(-)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) sz
     dd' ((x,y),(s,t,b,l,r)) = shrink (l,(+),b,(-)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) sz
 
-    toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> [Vertex3 GLfloat]
-    toQuads info@((x,y), (s, t, b, l, r)) = map (\f -> f info) $ concat [
-        --if s then [aa,bb,cc,dd,aa',bb',cc',dd'] else [],
-        if s then [aa,bb,cc,dd] else [],
-        if t then [aa,bb,bb',aa'] else [],
-        if b then [cc,dd,dd',cc'] else [],
-        if l then [aa,dd,dd',aa'] else [],
-        if r then [bb,cc,cc',bb'] else []
-      ]
+    toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> ([Vertex3 GLfloat], [Vertex3 GLfloat])
+    toQuads info@((x,y), (s, t, b, l, r)) = (map (\f -> f info) faces, map (\f -> f info) sides)
+      where
+        --faces = if s then [aa,bb,cc,dd] else []
+        --faces = if s then [aa',bb',cc',dd'] else []  -- TODO why not symmetrical?
+        faces = if s then [aa,bb,cc,dd,aa',bb',cc',dd'] else []
+        sides = concat [
+            if t then [aa,bb,bb',aa'] else [],
+            if b then [cc,dd,dd',cc'] else [],
+            if l then [aa,dd,dd',aa'] else [],
+            if r then [bb,cc,cc',bb'] else []
+          ]
 
     shrink :: (Bool, NumShrinker, Bool, NumShrinker) -> Vertex3 GLfloat -> Vertex3 GLfloat
     shrink (xc, xt, yc, yt) (Vertex3 x y z) = Vertex3 (if xc then xt x sz else x) (if yc then yt y sz else y) z
@@ -219,7 +226,9 @@ passive possibilities drawLines chosenOne aspect = do
 
             a <- readIORef aspect
             perspective 45.0 a 4 20000
-            lookAt (Vertex3 (6000 - 100 * fromIntegral x) (6000 - 100 * fromIntegral y) (-3000) :: Vertex3 GLdouble) (Vertex3 100 100 0 :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
+
+            let ang = fromIntegral x / 100.0
+            lookAt (Vertex3 (3000 * sin ang) (14000 - 100 * fromIntegral y) (3000 * cos ang) :: Vertex3 GLdouble) (Vertex3 500 100 (-250) :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
             -- mark screen dirty
             writeIORef dirty True
 
@@ -237,6 +246,7 @@ lineColor (Piece ((3,_,_),_)) = Color4 0.2 0.8 0.2 1
 lineColor (Piece ((4,_,_),_)) = Color4 0.2 0.2 0.6 1
 lineColor (Piece ((5,_,_),_)) = Color4 0.6 0.1 0.44 1
 faceColor piece@(Piece ((c,_,_),_)) = (\(Color4 r g b a) -> Color4 r g b 0.68) $ lineColor piece
+sideColor piece@(Piece ((c,_,_),_)) = (\(Color4 r g b a) -> Color4 (r+(g+b)*0.3) (g+(r+b)*0.3) (b+(r+g)*0.3) 0.68) $ lineColor piece
 
 --transforms :: [ (Vertex3 GLfloat -> Vertex3 GLfloat) ]
 transforms = [
@@ -262,8 +272,11 @@ render possibilities drawLines chosenOne = do
     when lines $ do
       GL.color $ lineColor piece
       GL.renderPrimitive GL.Lines $ mapM_ GL.vertex $ map transform $ pieceToLines piece
+    let (faces, sides) = pieceToQuads piece
     GL.color $ faceColor piece
-    GL.renderPrimitive GL.Quads $ mapM_ GL.vertex $ map transform $ pieceToQuads piece
+    GL.renderPrimitive GL.Quads $ mapM_ GL.vertex $ map transform $ faces
+    GL.color $ sideColor piece
+    GL.renderPrimitive GL.Quads $ mapM_ GL.vertex $ map transform $ sides
 
 
 vertex3 :: GLfloat -> GLfloat -> GLfloat -> GL.Vertex3 GLfloat
