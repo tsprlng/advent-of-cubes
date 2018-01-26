@@ -1,9 +1,12 @@
 .PHONY : all clean
 
-all : allColors
+all : cli gfx
 
-allColors : Main.hs Solver.hs Pieces.hs
-	ghc -o $@ -O Main.hs -hidir .crap -odir .crap
+cli : Main-CommandLine.hs Solver.hs Pieces.hs
+	ghc -o $@ -O Main-CommandLine.hs -hidir .crap -odir .crap
+
+gfx : Main-GLFW.hs Solver.hs Pieces.hs
+	ghc -o $@ -O Main-GLFW.hs -hidir .crap -odir .crap
 
 clean :
-	rm -rf .crap
+	rm -rf .crap gfx cli
