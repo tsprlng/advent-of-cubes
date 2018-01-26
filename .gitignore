@@ -1,2 +1,7 @@
 .crap
 allColors
+gfx
+*.html
+*.jsmod
+*.hi
+*.o
