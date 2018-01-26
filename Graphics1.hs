@@ -10,8 +10,6 @@ import Data.Map ((!))
 import Pieces
 import Solver (possibilities, allColorPossibilities, netPieces)
 
-data Action = Action (IO Action)
-
 type PieceMap = M.Map (Int, Int) Bool
 
 pieceAsMap :: Piece -> PieceMap
