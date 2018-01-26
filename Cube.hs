@@ -8,9 +8,6 @@ import Pieces
 vertex3 :: GLfloat -> GLfloat -> GLfloat -> GL.Vertex3 GLfloat
 vertex3 = GL.Vertex3
 
-color3 :: GLfloat -> GLfloat -> GLfloat -> GL.Color3 GLfloat
-color3 = GL.Color3
-
 type PieceMap = M.Map (Int, Int) Bool
 
 pieceAsMap :: Piece -> PieceMap
