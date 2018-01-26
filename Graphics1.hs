@@ -243,8 +243,8 @@ lineColor (Piece ((2,_,_),_)) = Color4 0.8 0.5 0.2 1
 lineColor (Piece ((3,_,_),_)) = Color4 0.2 0.8 0.2 1
 lineColor (Piece ((4,_,_),_)) = Color4 0.2 0.2 0.6 1
 lineColor (Piece ((5,_,_),_)) = Color4 0.6 0.1 0.44 1
-faceColor piece@(Piece ((c,_,_),_)) = (\(Color4 r g b a) -> Color4 r g b 0.68) $ lineColor piece
-sideColor piece@(Piece ((c,_,_),_)) = (\(Color4 r g b a) -> Color4 (r+(g+b)*0.3) (g+(r+b)*0.3) (b+(r+g)*0.3) 0.68) $ lineColor piece
+faceColor piece@(Piece ((c,_,_),_)) = (\(Color4 r g b a) -> Color4 r g b 0.78) $ lineColor piece
+sideColor piece@(Piece ((c,_,_),_)) = (\(Color4 r g b a) -> Color4 (r+(g+b)*0.3) (g+(r+b)*0.3) (b+(r+g)*0.3) 0.82) $ lineColor piece
 
 --transforms :: [ (Vertex3 GLfloat -> Vertex3 GLfloat) ]
 transforms = [
