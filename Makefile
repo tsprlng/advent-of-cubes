@@ -1,6 +1,6 @@
 .PHONY : all clean
 
-all : cli gfx cube.html
+all : cli gfx cube.js
 
 cli : Main-CommandLine.hs Solver.hs Pieces.hs
 	ghc -o $@ -O Main-CommandLine.hs -hidir .crap -odir .crap
@@ -8,8 +8,8 @@ cli : Main-CommandLine.hs Solver.hs Pieces.hs
 gfx : Main-GLFW.hs Solver.hs Pieces.hs Cube.hs
 	ghc -o $@ -O Main-GLFW.hs -hidir .crap -odir .crap
 
-cube.html : Main-WebGL.hs Solver.hs Pieces.hs Cube.hs
-	hastec --output-html Main-WebGL.hs -o cube.html --opt-whole-program=on --opt-minify=on --outdir=.crap
+cube.js : Main-WebGL.hs Solver.hs Pieces.hs Cube.hs
+	hastec Main-WebGL.hs -o cube.js --opt-whole-program=on --opt-minify=on
 
 clean :
 	rm -rf .crap gfx cli *.html *.hi *.o

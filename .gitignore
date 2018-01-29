@@ -1,7 +1,6 @@
 .crap
 cli
 gfx
-*.html
 *.jsmod
 *.hi
 *.o
