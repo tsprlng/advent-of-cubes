@@ -79,10 +79,10 @@ pieceToQuads piece = pairConcat $ map toQuads $ M.toList $ whichFaces $ pieceAsM
         --faces = if s then [aa',bb',cc',dd'] else []  -- TODO why not symmetrical?
         faces = if s then [aa,bb,cc,dd,aa',bb',cc',dd'] else []
         sides = concat [
-            if t then [aa,bb,bb',aa'] else [],
-            if b then [cc,dd,dd',cc'] else [],
-            if l then [aa,dd,dd',aa'] else [],
-            if r then [bb,cc,cc',bb'] else []
+            if s then [aa,bb,bb',aa'] else [],
+            if s then [cc,dd,dd',cc'] else [],
+            if s then [aa,dd,dd',aa'] else [],
+            if s then [bb,cc,cc',bb'] else []
           ]
 
     shrink :: (Bool, NumShrinker, Bool, NumShrinker) -> Vertex3 GLfloat -> Vertex3 GLfloat
@@ -97,7 +97,7 @@ lineColor (Piece ((2,_,_),_)) = Color4 0.8 0.5 0.2 1
 lineColor (Piece ((3,_,_),_)) = Color4 0.2 0.8 0.2 1
 lineColor (Piece ((4,_,_),_)) = Color4 0.2 0.2 0.6 1
 lineColor (Piece ((5,_,_),_)) = Color4 0.6 0.1 0.44 1
-faceColor piece@(Piece ((c,_,_),_)) = (\(Color4 r g b a) -> Color4 r g b 0.78) $ lineColor piece
+faceColor piece@(Piece ((c,_,_),_)) = (\(Color4 r g b a) -> Color4 r g b 0.84) $ lineColor piece
 sideColor piece@(Piece ((c,_,_),_)) = (\(Color4 r g b a) -> Color4 (r+(g+b)*0.3) (g+(r+b)*0.3) (b+(r+g)*0.3) 0.82) $ lineColor piece
 
 transforms :: [ (Vertex3 GLfloat -> Vertex3 GLfloat) ]
