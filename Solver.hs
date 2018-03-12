@@ -1,21 +1,11 @@
 module Solver where
 
 import Pieces
-import Data.List (intercalate, groupBy, sortOn)
+import Data.List (groupBy, sortOn)
 import Debug.Trace (trace)
 
 newtype Net = Net [Piece]
 type PieceVariations = [Piece]
-
-instance Show Net where
-  show (Net [a,b,c,d,e,f]) = intercalate "\n" $ map (foldl1 append) [
-    [empty, show f, empty],
-    [show c, show a, show d],
-    [empty, show b, empty],
-    [empty, show e, empty] ]
-    where
-      empty = intercalate "\n" $ replicate 5 "     "
-      append a b = unlines $ zipWith (\a b -> a ++ "  " ++ b) (lines a) (lines b)
 
 netPieces (Net ps) = ps
 
