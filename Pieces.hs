@@ -2,36 +2,44 @@ module Pieces where
 
 import Data.List (intercalate)
 
-type Side = Bool
+type FlipSide = Bool
 type Color = Int
 type Label = String
 type Voxel = Bool
-newtype Piece = Piece ((Color, Side, Label), [Voxel])
+newtype Piece = Piece ((Color, FlipSide, Label), [Voxel])
 
 type Edge = [Voxel]
 type Edges = [Edge]
 
 instance Show Piece where
-  show (Piece ((c,s,l), vs)) = intercalate "\n" $ map (concatMap showBit) [[0,1,2,3,4], [15,x,x,x,5], [14,x,ll,x,6], [13,x,x,x,7], [12,11,10,9,8]]
-    -- (this seems a bit lame)
-    where
-      x = (-1)
-      ll = (-2)
-      showBit (-1) = block
-      showBit (-2) = l
-      showBit n = color c ++ (if (vs !! n) then block else " ")
-      block = if s then "█" else "▓"
-      color 0 = "\ESC[1;31m"
-      color 1 = "\ESC[1;33m"
-      color 2 = "\ESC[1;34m" -- TODO light blue currently stands in for orrnj
-      color 3 = "\ESC[1;32m"
-      color 4 = "\ESC[1;36m"
-      color 5 = "\ESC[1;35m"
+  show (Piece ((colorIdx, flipside, label), vs))
+    = color colorIdx ++ intercalate ('\n' : color colorIdx) lines ++ reset
+      where
+        lines = map (concatMap showBit) [
+          [ 0, 1, 2, 3, 4],
+          [15, x, x, x, 5],
+          [14, x,ll, x, 6],
+          [13, x, x, x, 7],
+          [12,11,10, 9, 8] ]
 
-    -- TODO reset color
+        x = (-1)
+        ll = (-2)
+        showBit (-1) = filled
+        showBit (-2) = label
+        showBit n = if (vs !! n) then filled else " "
+        filled = if flipside then "█" else "▓"
+
+        color 0 = "\ESC[1;31m"     -- red
+        color 1 = "\ESC[1;33m"     -- yellow
+        color 2 = "\ESC[38;5;208m" -- orrnj
+        color 3 = "\ESC[1;32m"     -- green
+        color 4 = "\ESC[1;36m"     -- blue
+        color 5 = "\ESC[1;35m"     -- purple
+
+        reset = "\ESC[0m"
 
 pieces :: [Piece]
-pieces = zipWith (\idx (c,vs)-> Piece ((c, True, (show . (`mod` 6) $ idx)), map (=='1') vs)) [0..] [
+pieces = zipWith (\idx (c,vs)-> Piece ((c, True, show (mod idx 6)), map (=='1') vs)) [0..] [
   -- red
   (0, "1101011011011100"),
   (0, "1010011000101101"),
