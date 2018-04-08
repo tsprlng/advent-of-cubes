@@ -1,5 +1,6 @@
 module Main where
 
+import Pieces
 import Solver
 import Data.List (intercalate)
 
