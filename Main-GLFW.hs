@@ -10,7 +10,14 @@ import Data.Map ((!))
 
 import Pieces
 import Solver (possibilities, allColorPossibilities, netPieces)
-import Cube
+import qualified Cube
+
+v3c = \(x,y,z)-> Vertex3 x y z
+c4c = \(r,g,b,a)-> Color4 r g b a
+
+lineColor = c4c . Cube.lineColor
+faceColor = c4c . Cube.faceColor
+sideColor = c4c . Cube.sideColor
 
 main = do
   -- invoke either active or passive drawing loop depending on command line argument
@@ -169,9 +176,9 @@ render possibilities drawLines chosenOne = do
 
     when lines $ do
       GL.color $ lineColor piece
-      GL.renderPrimitive GL.Lines $ mapM_ GL.vertex $ map transform $ pieceToLines piece
-    let (faces, sides) = pieceToQuads piece
+      GL.renderPrimitive GL.Lines $ mapM_ (GL.vertex . v3c) $ map transform $ Cube.pieceToLines piece
+    let (faces, sides) = Cube.pieceToQuads piece
     GL.color $ faceColor piece
-    GL.renderPrimitive GL.Quads $ mapM_ GL.vertex $ map transform $ faces
+    GL.renderPrimitive GL.Quads $ mapM_ (GL.vertex . v3c) $ map transform $ faces
     GL.color $ sideColor piece
-    GL.renderPrimitive GL.Quads $ mapM_ GL.vertex $ map transform $ sides
+    GL.renderPrimitive GL.Quads $ mapM_ (GL.vertex . v3c) $ map transform $ sides
