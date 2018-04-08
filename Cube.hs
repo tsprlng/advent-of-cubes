@@ -23,10 +23,15 @@ pieceAsMap (Piece (_, vs)) = M.fromList $ concat $ zipWith row [0..] [[0,1,2,3,4
     isFilled (-1) = True
     isFilled v = vs !! v
 
-whichFaces :: PieceMap -> M.Map (Int, Int) (Bool, Bool, Bool, Bool, Bool)
+whichFaces :: PieceMap -> M.Map (Int, Int) (Bool, (Bool, Bool, Bool, Bool), (Bool, Bool, Bool, Bool))
 whichFaces pieceMap = M.fromList $ map answer $ M.toList pieceMap
   where
-    answer ((x,y), self) = ((x,y), (self, should (x, y-1), should (x, y+1), should (x-1, y), should (x+1, y)))
+    answer ((x,y), self)
+      = ((x,y), (
+          self,
+          (should (x, y-1), should (x, y+1), should (x-1, y), should (x+1, y)),
+          (should (x-1, y-1), should (x+1, y-1), should (x+1, y+1), should (x-1, y+1))
+        ))
       where
         should (x,y) = self && not (M.findWithDefault False (x,y) pieceMap)
 
@@ -37,19 +42,19 @@ pieceToLines piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piec
   where
     sz = 200.0
     back :: Vertex -> Vertex
-    back (x,y,z) = (x, y, z + sz)
+    back (x,y,z) = (x, y, z + 160)
 
-    aa  ((x,y),(s,t,b,l,r)) = shrink (l,(+),t,(+)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      0
-    bb  ((x,y),(s,t,b,l,r)) = shrink (r,(-),t,(+)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      0
-    cc  ((x,y),(s,t,b,l,r)) = shrink (r,(-),b,(-)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) 0
-    dd  ((x,y),(s,t,b,l,r)) = shrink (l,(+),b,(-)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) 0
+    aa  ((x,y),(s,(t,b,l,r),(tl,tr,br,bl))) = shrink (t && not l,(-),l && not t,(-)) $ shrink (tl||l,(+),tl||t,(+)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      10
+    bb  ((x,y),(s,(t,b,l,r),(tl,tr,br,bl))) = shrink (t && not r,(+),r && not t,(-)) $ shrink (tr||r,(-),tr||t,(+)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      10
+    cc  ((x,y),(s,(t,b,l,r),(tl,tr,br,bl))) = shrink (b && not r,(+),r && not b,(+)) $ shrink (br||r,(-),br||b,(-)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) 10
+    dd  ((x,y),(s,(t,b,l,r),(tl,tr,br,bl))) = shrink (b && not l,(-),l && not b,(+)) $ shrink (bl||l,(+),bl||b,(-)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) 10
     aa' = back . aa
     bb' = back . bb
     cc' = back . cc
     dd' = back . dd
 
-    toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> [Vertex]
-    toQuads info@((x,y), (s, t, b, l, r)) = map (\f -> f info) $ concat [
+    toQuads :: ((Int, Int), (Bool, (Bool, Bool, Bool, Bool), (Bool, Bool, Bool, Bool))) -> [Vertex]
+    toQuads info@(_, (s, (t, b, l, r), _)) = map (\f -> f info) $ concat [
         if t then [aa,bb,bb,bb',bb',aa',aa',aa] else [],
         if b then [cc,dd,dd,dd',dd',cc',cc',cc] else [],
         if l then [aa,dd,dd,dd',dd',aa',aa',aa] else [],
@@ -70,19 +75,19 @@ pieceToQuads piece = pairConcat $ map toQuads $ M.toList $ whichFaces $ pieceAsM
   where
     sz = 200
     back :: Vertex -> Vertex
-    back (x,y,z) = (x, y, z + sz)
+    back (x,y,z) = (x, y, z + 160)
 
-    aa  ((x,y),(s,t,b,l,r)) = shrink (l,(+),t,(+)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      0
-    bb  ((x,y),(s,t,b,l,r)) = shrink (r,(-),t,(+)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      0
-    cc  ((x,y),(s,t,b,l,r)) = shrink (r,(-),b,(-)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) 0
-    dd  ((x,y),(s,t,b,l,r)) = shrink (l,(+),b,(-)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) 0
+    aa  ((x,y),(s,(t,b,l,r),(tl,tr,br,bl))) = shrink (t && not l,(-),l && not t,(-)) $ shrink (tl||l,(+),tl||t,(+)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      10
+    bb  ((x,y),(s,(t,b,l,r),(tl,tr,br,bl))) = shrink (t && not r,(+),r && not t,(-)) $ shrink (tr||r,(-),tr||t,(+)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      10
+    cc  ((x,y),(s,(t,b,l,r),(tl,tr,br,bl))) = shrink (b && not r,(+),r && not b,(+)) $ shrink (br||r,(-),br||b,(-)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) 10
+    dd  ((x,y),(s,(t,b,l,r),(tl,tr,br,bl))) = shrink (b && not l,(-),l && not b,(+)) $ shrink (bl||l,(+),bl||b,(-)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) 10
     aa' = back . aa
     bb' = back . bb
     cc' = back . cc
     dd' = back . dd
 
-    toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> ([Vertex], [Vertex])
-    toQuads info@((x,y), (s, t, b, l, r)) = (map (\f -> f info) faces, map (\f -> f info) sides)
+    toQuads :: ((Int, Int), (Bool, (Bool, Bool, Bool, Bool), (Bool, Bool, Bool, Bool))) -> ([Vertex], [Vertex])
+    toQuads info@(_, (s, (t, b, l, r), _)) = (map (\f -> f info) faces, map (\f -> f info) sides)
       where
         --faces = if s then [aa,bb,cc,dd] else []
         --faces = if s then [aa',bb',cc',dd'] else []  -- TODO why not symmetrical?
