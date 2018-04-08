@@ -35,16 +35,18 @@ type NumShrinker = GLfloat -> GLfloat -> GLfloat
 pieceToLines :: Piece -> [Vertex]
 pieceToLines piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piece
   where
-    sz = 200
+    sz = 200.0
+    back :: Vertex -> Vertex
+    back (x,y,z) = (x, y, z + sz)
 
     aa  ((x,y),(s,t,b,l,r)) = shrink (l,(+),t,(+)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      0
     bb  ((x,y),(s,t,b,l,r)) = shrink (r,(-),t,(+)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      0
     cc  ((x,y),(s,t,b,l,r)) = shrink (r,(-),b,(-)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) 0
     dd  ((x,y),(s,t,b,l,r)) = shrink (l,(+),b,(-)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) 0
-    aa' ((x,y),(s,t,b,l,r)) = shrink (l,(+),t,(+)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      sz
-    bb' ((x,y),(s,t,b,l,r)) = shrink (r,(-),t,(+)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      sz
-    cc' ((x,y),(s,t,b,l,r)) = shrink (r,(-),b,(-)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) sz
-    dd' ((x,y),(s,t,b,l,r)) = shrink (l,(+),b,(-)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) sz
+    aa' = back . aa
+    bb' = back . bb
+    cc' = back . cc
+    dd' = back . dd
 
     toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> [Vertex]
     toQuads info@((x,y), (s, t, b, l, r)) = map (\f -> f info) $ concat [
@@ -67,15 +69,17 @@ pieceToQuads :: Piece -> ([Vertex], [Vertex])
 pieceToQuads piece = pairConcat $ map toQuads $ M.toList $ whichFaces $ pieceAsMap piece
   where
     sz = 200
+    back :: Vertex -> Vertex
+    back (x,y,z) = (x, y, z + sz)
 
     aa  ((x,y),(s,t,b,l,r)) = shrink (l,(+),t,(+)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      0
     bb  ((x,y),(s,t,b,l,r)) = shrink (r,(-),t,(+)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      0
     cc  ((x,y),(s,t,b,l,r)) = shrink (r,(-),b,(-)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) 0
     dd  ((x,y),(s,t,b,l,r)) = shrink (l,(+),b,(-)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) 0
-    aa' ((x,y),(s,t,b,l,r)) = shrink (l,(+),t,(+)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz)      sz
-    bb' ((x,y),(s,t,b,l,r)) = shrink (r,(-),t,(+)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz)      sz
-    cc' ((x,y),(s,t,b,l,r)) = shrink (r,(-),b,(-)) $ vertex3 (fromIntegral x * sz + sz) (fromIntegral y * sz + sz) sz
-    dd' ((x,y),(s,t,b,l,r)) = shrink (l,(+),b,(-)) $ vertex3 (fromIntegral x * sz)      (fromIntegral y * sz + sz) sz
+    aa' = back . aa
+    bb' = back . bb
+    cc' = back . cc
+    dd' = back . dd
 
     toQuads :: ((Int, Int), (Bool, Bool, Bool, Bool, Bool)) -> ([Vertex], [Vertex])
     toQuads info@((x,y), (s, t, b, l, r)) = (map (\f -> f info) faces, map (\f -> f info) sides)
