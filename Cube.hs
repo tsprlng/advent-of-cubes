@@ -82,11 +82,11 @@ pieceToQuads piece = pairConcat $ map toQuads $ M.toList $ whichFaces $ pieceAsM
       where
         --faces = if s then [aa,bb,cc,dd] else []
         --faces = if s then [aa',bb',cc',dd'] else []  -- TODO why not symmetrical?
-        faces = if s then [aa,bb,cc,dd,aa',bb',cc',dd'] else []
+        faces = if s then [aa,dd,cc,bb,aa',bb',cc',dd'] else []
         sides = concat [
             if t then [aa,bb,bb',aa'] else [],
             if b then [cc,dd,dd',cc'] else [],
-            if l then [aa,dd,dd',aa'] else [],
+            if l then [aa,aa',dd',dd] else [],
             if r then [bb,cc,cc',bb'] else []
           ]
 
@@ -108,9 +108,9 @@ sideColor piece@(Piece ((c,_,_),_)) = (\(r, g, b, a) -> ((r+(g+b)*0.3), (g+(r+b)
 transforms :: [ (Vertex -> Vertex) ]
 transforms = [
     \(x, y, z) -> vertex3 (1000-x) (1000-y) z,
-    \(x, y, z) -> vertex3 (1000-x) z (200-y),
-    \(x, y, z) -> vertex3 (1000-z) (1000-y) (x-800),
-    \(x, y, z) -> vertex3 z (1000-y) (200-x),
+    \(x, y, z) -> vertex3 (1000-x) (200-z) (200-y),
+    \(x, y, z) -> vertex3 (800+z) (1000-y) (x-800),
+    \(x, y, z) -> vertex3 (200-z) (1000-y) (200-x),
     \(x, y, z) -> vertex3 (1000-x) (y) (-600-z),
-    \(x, y, z) -> vertex3 (1000-x) (1000-z) (y-800)
+    \(x, y, z) -> vertex3 (1000-x) (800+z) (y-800)
   ]
