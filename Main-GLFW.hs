@@ -154,7 +154,7 @@ passive possibilities drawLines chosenOne aspect = do
             perspective 45.0 a 4 20000
 
             let ang = fromIntegral x / 100.0
-            lookAt (Vertex3 (3000 * sin ang) (14000 - 100 * fromIntegral y) (3000 * cos ang) :: Vertex3 GLdouble) (Vertex3 500 100 (-250) :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
+            lookAt (Vertex3 (3000 * sin ang) (14000 - 100 * fromIntegral y) (3000 * cos ang) :: Vertex3 GLdouble) (Vertex3 0 0 0 :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
             -- mark screen dirty
             writeIORef dirty True
 

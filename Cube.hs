@@ -116,10 +116,10 @@ sideColor piece@(Piece ((c,_,_),_)) = (\(r, g, b, a) -> ((r+(g+b)*0.3), (g+(r+b)
 
 transforms :: [ (Vertex -> Vertex) ]
 transforms = [
-    \(x, y, z) -> vertex3 (1000-x) (1000-y) z,
-    \(x, y, z) -> vertex3 (1000-x) (200-z) (200-y),
-    \(x, y, z) -> vertex3 (800+z) (1000-y) (x-800),
-    \(x, y, z) -> vertex3 (200-z) (1000-y) (200-x),
-    \(x, y, z) -> vertex3 (1000-x) (y) (-600-z),
-    \(x, y, z) -> vertex3 (1000-x) (800+z) (y-800)
+    \(x, y, z) -> vertex3 (500-x) (500-y) (300+z),
+    \(x, y, z) -> vertex3 (500-x) (-300-z) (500-y),
+    \(x, y, z) -> vertex3 (300+z) (500-y) (x-500),
+    \(x, y, z) -> vertex3 (-300-z) (500-y) (500-x),
+    \(x, y, z) -> vertex3 (500-x) (y-500) (-300-z),
+    \(x, y, z) -> vertex3 (500-x) (300+z) (y-500)
   ]
