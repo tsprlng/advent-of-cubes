@@ -28,8 +28,6 @@ c4c (r,g,b,_) = "#" ++ concatMap floatToCssHex [r,g,b]
 
 main :: IO ()
 main = do
-  titleElem <- mkTitle "Hello World"
-  appendChild documentBody titleElem
   render
 
 render = do
