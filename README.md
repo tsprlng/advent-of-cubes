@@ -3,6 +3,8 @@
 
 Solving foam cubes in haskell.
 
+https://www.tspurling.co.uk/foam-cubes/  (probably but not certainly the latest version)
+
 Passed a long flight\* and then some!
 
 - Solver
