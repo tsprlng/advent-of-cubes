@@ -1,0 +1,12 @@
+build-type: Simple
+name: advent-of-cubes
+version: 1.0.0
+cabal-version: >= 1.10
+
+executable cli
+  build-depends: base
+  main-is: Main-CommandLine.hs
+
+executable gfx
+  build-depends: base, containers, GLFW, OpenGL
+  main-is: Main-GLFW.hs

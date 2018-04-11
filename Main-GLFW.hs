@@ -12,8 +12,8 @@ import Pieces
 import Solver (possibilities, allColorPossibilities, netPieces)
 import qualified Cube
 
-v3c = \(x,y,z)-> Vertex3 x y z
-c4c = \(r,g,b,a)-> Color4 r g b a
+v3c = \(x,y,z)-> Vertex3 (realToFrac x ::GLfloat) (realToFrac y) (realToFrac z)
+c4c = \(r,g,b,a)-> Color4 (realToFrac r ::GLfloat) (realToFrac g) (realToFrac b) (realToFrac a)
 
 lineColor = c4c . Cube.lineColor
 faceColor = c4c . Cube.faceColor

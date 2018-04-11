@@ -1,0 +1,7 @@
+resolver: lts-11.4
+
+packages:
+- .
+
+extra-deps:
+- GLFW-0.5.2.5
