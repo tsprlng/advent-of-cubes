@@ -1,7 +1,14 @@
-resolver: lts-11.4
+resolver: lts-6.14
 
 packages:
 - .
 
 extra-deps:
 - GLFW-0.5.2.5
+- haste-compiler-0.6.0.0
+- ghc-simple-0.3
+- shellmate-0.3.4.2
+- shellmate-extras-0.3.4.1
+- http-conduit-2.2.4
+- http-client-0.5.12
+- http-client-tls-0.3.5.3
