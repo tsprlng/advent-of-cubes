@@ -7,14 +7,13 @@ https://www.tspurling.co.uk/foam-cubes/  (probably but not certainly the latest 
 
 Passed a long flight\* and then some!
 
-- Solver
+- Solver;
 
-- Command line printouts of solutions
+- Command line printouts of solutions;
 
-- Slightly broken OpenGL 3D rendering of solutions
+- Slightly broken OpenGL 3D rendering of solutions;
 
-- Soon(?): three.js rendering of solutions from Haskell via Haste(?)
-
+- three.js rendering of solutions from Haskell via Haste.
 
 Very not tidy and/or finished but uploading it now so that I don't have to wonder when I'll upload it.
 
