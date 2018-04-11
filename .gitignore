@@ -1,6 +1,7 @@
 .crap
 cli
 gfx
+cube.js
 *.jsmod
 *.hi
 *.o
