@@ -12,4 +12,4 @@ cube.js : Main-WebGL.hs Solver.hs Pieces.hs Cube.hs
 	hastec Main-WebGL.hs -o cube.js --opt-whole-program=on --opt-minify=on
 
 clean :
-	rm -rf .crap gfx cli cube.js *.hi *.o
+	rm -rf .crap gfx cli cube.js *.hi *.o *.jsmod
