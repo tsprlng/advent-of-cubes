@@ -24,7 +24,7 @@ v3c (x,y,z) = (realToFrac x, realToFrac y, realToFrac z)
 c4c :: (CDouble, CDouble, CDouble, a) -> String
 c4c (r,g,b,_) = "#" ++ concatMap floatToCssHex [r,g,b]
   where
-    floatToCssHex n = showHex (round (255.0 * realToFrac n)) ""
+    floatToCssHex n = showHex (min 255 $ round (255.0 * realToFrac n)) ""
 
 main :: IO ()
 main = do
