@@ -58,14 +58,15 @@ main' run possibilities = do
     do
       GL.viewport   $= (GL.Position 0 0, size)
       GL.matrixMode $= GL.Projection
-      GL.loadIdentity
-      --GL.ortho 0 (realToFrac w) (realToFrac h) 0 (-1) 5
-      GL.frustum (-20) (600) (480) (-20) 4 4000
-      --GL.frustum (-20) (realToFrac w) (realToFrac h) (-20) 4 4000
-      GL.rotate 0.2 (GL.Vector3 0 1 0 :: GL.Vector3 GL.GLfloat)
-      GL.translate $ GL.Vector3 0 0 (-14::GLfloat)
 
-      writeIORef aspect (fromIntegral w / fromIntegral h)
+      let a = (fromIntegral w / fromIntegral h)
+      writeIORef aspect a
+
+      GL.loadIdentity
+      perspective 45.0 a 4 20000
+      let ang = fromIntegral 37 / 100.0
+      lookAt (Vertex3 (3000 * sin ang) (14000 - 100 * fromIntegral 130) (3000 * cos ang) :: Vertex3 GLdouble) (Vertex3 0 0 0 :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
+
   -- keep all line strokes as a list of points in an IORef
   chosenOne <- newIORef 0
   drawLines <- newIORef True
