@@ -33,9 +33,14 @@ main = do
 render = do
   let pcs = netPieces $ head allColorPossibilities
   (flip mapM_) (zip pcs Cube.transforms) $ \(piece,transform) -> do
-    let (faces, sides) = pieceToQuads piece
-    (flip addMeshFromQuads (c4c $ faceColor piece)) $ map v3c $ map transform $ faces
+    let (frontFace, backFace, sides) = pieceToQuads piece
+    (flip addMeshFromQuads (c4c $ faceColor piece)) $ map v3c $ map transform $ backFace
+  (flip mapM_) (zip pcs Cube.transforms) $ \(piece,transform) -> do
+    let (frontFace, backFace, sides) = pieceToQuads piece
     (flip addMeshFromQuads (c4c $ sideColor piece)) $ map v3c $ map transform $ sides
+  (flip mapM_) (zip pcs Cube.transforms) $ \(piece,transform) -> do
+    let (frontFace, backFace, sides) = pieceToQuads piece
+    (flip addMeshFromQuads (c4c $ faceColor piece)) $ map v3c $ map transform $ frontFace
 
 alert :: String -> IO ()
 alert = ffi "((s)=>{window.alert(s)})"

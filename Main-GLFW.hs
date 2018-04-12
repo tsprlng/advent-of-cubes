@@ -178,8 +178,24 @@ render possibilities drawLines chosenOne = do
     when lines $ do
       GL.color $ lineColor piece
       GL.renderPrimitive GL.Lines $ mapM_ (GL.vertex . v3c) $ map transform $ Cube.pieceToLines piece
-    let (faces, sides) = Cube.pieceToQuads piece
+    let (frontFace, backFace, sides) = Cube.pieceToQuads piece
     GL.color $ faceColor piece
-    GL.renderPrimitive GL.Quads $ mapM_ (GL.vertex . v3c) $ map transform $ faces
+    GL.renderPrimitive GL.Quads $ mapM_ (GL.vertex . v3c) $ map transform $ backFace
+
+  flip mapM_ (zip pcs Cube.transforms) $ \(piece,transform) -> do
+
+    when lines $ do
+      GL.color $ lineColor piece
+      GL.renderPrimitive GL.Lines $ mapM_ (GL.vertex . v3c) $ map transform $ Cube.pieceToLines piece
+    let (frontFace, backFace, sides) = Cube.pieceToQuads piece
     GL.color $ sideColor piece
     GL.renderPrimitive GL.Quads $ mapM_ (GL.vertex . v3c) $ map transform $ sides
+
+  flip mapM_ (zip pcs Cube.transforms) $ \(piece,transform) -> do
+
+    when lines $ do
+      GL.color $ lineColor piece
+      GL.renderPrimitive GL.Lines $ mapM_ (GL.vertex . v3c) $ map transform $ Cube.pieceToLines piece
+    let (frontFace, backFace, sides) = Cube.pieceToQuads piece
+    GL.color $ faceColor piece
+    GL.renderPrimitive GL.Quads $ mapM_ (GL.vertex . v3c) $ map transform $ frontFace

@@ -66,12 +66,12 @@ pieceToLines piece = concatMap toQuads $ M.toList $ whichFaces $ pieceAsMap piec
       where
         sz = 18
 
-pairConcat :: [([a],[b])] -> ([a],[b])
-pairConcat [] = ([],[])
-pairConcat ((a,b):xs) = (\(as,bs) -> (a++as, b++bs)) $ pairConcat xs
+threeConcat :: [([a],[b],[c])] -> ([a],[b],[c])
+threeConcat [] = ([],[],[])
+threeConcat ((a,b,c):xs) = (\(as,bs,cs) -> (a++as, b++bs, c++cs)) $ threeConcat xs
 
-pieceToQuads :: Piece -> ([Vertex], [Vertex])
-pieceToQuads piece = pairConcat $ map toQuads $ M.toList $ whichFaces $ pieceAsMap piece
+pieceToQuads :: Piece -> ([Vertex], [Vertex], [Vertex])
+pieceToQuads piece = threeConcat $ map toQuads $ M.toList $ whichFaces $ pieceAsMap piece
   where
     sz = 200
     back :: Vertex -> Vertex
@@ -86,12 +86,13 @@ pieceToQuads piece = pairConcat $ map toQuads $ M.toList $ whichFaces $ pieceAsM
     cc' = back . cc
     dd' = back . dd
 
-    toQuads :: ((Int, Int), (Bool, (Bool, Bool, Bool, Bool), (Bool, Bool, Bool, Bool))) -> ([Vertex], [Vertex])
-    toQuads info@(_, (s, (t, b, l, r), _)) = (map (\f -> f info) faces, map (\f -> f info) sides)
+    toQuads :: ((Int, Int), (Bool, (Bool, Bool, Bool, Bool), (Bool, Bool, Bool, Bool))) -> ([Vertex], [Vertex], [Vertex])
+    toQuads info@(_, (s, (t, b, l, r), _)) = (map (\f -> f info) frontFace, map (\f -> f info) backFace, map (\f -> f info) sides)
       where
         --faces = if s then [aa,bb,cc,dd] else []
         --faces = if s then [aa',bb',cc',dd'] else []  -- TODO why not symmetrical?
-        faces = if s then [aa,dd,cc,bb,aa',bb',cc',dd'] else []
+        backFace = if s then [aa,dd,cc,bb] else []
+        frontFace = if s then [aa',bb',cc',dd'] else []
         sides = concat [
             if t then [aa,bb,bb',aa'] else [],
             if b then [cc,dd,dd',cc'] else [],
