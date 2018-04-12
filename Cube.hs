@@ -1,11 +1,10 @@
 module Cube where
 
-import Foreign.C.Types (CDouble)
 import qualified Data.Map as M
 
 import Pieces
 
-type GLfloat = CDouble
+type GLfloat = Double
 type Vertex = (GLfloat, GLfloat, GLfloat)
 
 type Color4 = (GLfloat, GLfloat, GLfloat, GLfloat)
@@ -89,8 +88,6 @@ pieceToQuads piece = threeConcat $ map toQuads $ M.toList $ whichFaces $ pieceAs
     toQuads :: ((Int, Int), (Bool, (Bool, Bool, Bool, Bool), (Bool, Bool, Bool, Bool))) -> ([Vertex], [Vertex], [Vertex])
     toQuads info@(_, (s, (t, b, l, r), _)) = (map (\f -> f info) frontFace, map (\f -> f info) backFace, map (\f -> f info) sides)
       where
-        --faces = if s then [aa,bb,cc,dd] else []
-        --faces = if s then [aa',bb',cc',dd'] else []  -- TODO why not symmetrical?
         backFace = if s then [aa,dd,cc,bb] else []
         frontFace = if s then [aa',bb',cc',dd'] else []
         sides = concat [

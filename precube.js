@@ -1,4 +1,4 @@
-function cv(arr){
+function vec(arr){
 	return new THREE.Vector3(arr[0], arr[1], arr[2])
 }
 
@@ -6,7 +6,7 @@ meshes = []
 
 function animate() {
 	requestAnimationFrame(animate)
-	meshes.forEach( (mesh)=>{
+	meshes.forEach(mesh => {
 		mesh.rotation.x += 0.006
 		mesh.rotation.y += 0.06
 		mesh.rotation.z += 0.00
@@ -17,17 +17,18 @@ function animate() {
 function addMeshFromQuads(q, color){
 	var geometry = new THREE.Geometry()
 	for (var i = 0; i < q.length - 3; i += 4){
-		len = geometry.vertices.push(cv(q[i]), cv(q[i+1]), cv(q[i+2]), cv(q[i+3]))
-		geometry.faces.push( new THREE.Face3(i, i+1, i+2) )
-		geometry.faces.push( new THREE.Face3(i+2, i+3, i) )
+		// Add our corners
+			len = geometry.vertices.push(vec(q[i]), vec(q[i+1]), vec(q[i+2]), vec(q[i+3]))
+		// Add quad as two triangles
+			geometry.faces.push( new THREE.Face3(i, i+1, i+2) )
+			geometry.faces.push( new THREE.Face3(i+2, i+3, i) )
 	}
 	geometry.computeBoundingSphere()
 	geometry.computeBoundingBox()
 	geometry.computeFaceNormals()
-	geometry.colorsNeedUpdate = true
 
 	var material = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.82, side: THREE.FrontSide })
-	mesh = new THREE.Mesh(geometry, material)
+	var mesh = new THREE.Mesh(geometry, material)
 	meshes.push(mesh)
 	window.scene.add(mesh)
 }
