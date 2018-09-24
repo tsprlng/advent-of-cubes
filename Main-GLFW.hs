@@ -202,7 +202,7 @@ render possibilities drawState = do
   when flappingIn $
     modifyIORef (flappiness drawState) $ \f -> min 1 (f+0.02)
   when flappingOut $
-    modifyIORef (flappiness drawState) $ \f -> max (-0) (f-0.02)
+    modifyIORef (flappiness drawState) $ \f -> max (-1) (f-0.02)
 
   flappiness <- sin . (/2.0) . (*3.14159) <$> readIORef (flappiness drawState)
   lines <- readIORef (drawLines drawState)
