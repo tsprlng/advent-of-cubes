@@ -13,6 +13,15 @@ import Pieces
 import Solver (possibilities, allColorPossibilities, netPieces)
 import qualified Cube
 
+data DrawState = DrawState {
+  aspect :: IORef GLdouble  -- window aspect ratio (for squaring up viewport)
+, chosenOne   :: IORef Int  -- index of solution being drawn
+, drawLines   :: IORef Bool -- whether to draw lines!
+, flappiness  :: IORef Cube.GLfloat  -- how flappy the cube is
+, flappingIn  :: IORef Bool  -- is it getting less flappy?
+, flappingOut :: IORef Bool  -- is it getting flappier?
+}
+
 v3c = \(x,y,z)-> Vertex3 (realToFrac x ::GLfloat) (realToFrac y) (realToFrac z)
 c4c = \(r,g,b,a)-> Color4 (realToFrac r ::GLfloat) (realToFrac g) (realToFrac b) (realToFrac a)
 
@@ -51,36 +60,35 @@ main' run possibilities = do
   -- set the color to clear background
   GL.clearColor $= Color4 0 0 0 0
 
-  -- set 2D orthogonal view inside windowSizeCallback because
-  -- any change to the Window size should result in different
-  -- OpenGL Viewport.
-  aspect <- newIORef 1.0
+  thing <- newIORef False
+  drawState <- return DrawState
+    `ap` (newIORef 1.0)
+    `ap` (newIORef 0)
+    `ap` (newIORef True)
+    `ap` (newIORef 1.0)
+    `ap` (newIORef False)
+    `ap` (newIORef False)
+
   GLFW.windowSizeCallback $= \ size@(GL.Size w h) ->
     do
       GL.viewport   $= (GL.Position 0 0, size)
       GL.matrixMode $= GL.Projection
 
       let a = (fromIntegral w / fromIntegral h)
-      writeIORef aspect a
+      writeIORef (aspect drawState) a
 
       GL.loadIdentity
       perspective 45.0 a 4 20000
       let ang = fromIntegral 37 / 100.0
       lookAt (Vertex3 (3000 * sin ang) (14000 - 100 * fromIntegral 130) (3000 * cos ang) :: Vertex3 GLdouble) (Vertex3 0 0 0 :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
 
-  -- keep all line strokes as a list of points in an IORef
-  chosenOne <- newIORef 0
-  drawLines <- newIORef True
-  flappiness <- newIORef 1 :: IO (IORef Cube.GLfloat)
-  flappingIn <- newIORef False
-  flappingOut <- newIORef False
   -- run the main loop
-  run possibilities drawLines chosenOne aspect flappiness flappingIn flappingOut
+  run possibilities drawState
   -- finish up
   GLFW.closeWindow
   GLFW.terminate
 
-passive possibilities drawLines chosenOne aspect flappiness flappingIn flappingOut = do 
+passive possibilities drawState = do 
   -- disable auto polling in swapBuffers
   GLFW.disableSpecial GLFW.AutoPollEvent
 
@@ -98,18 +106,18 @@ passive possibilities drawLines chosenOne aspect flappiness flappingIn flappingO
   -- use key callback to track whether ESC is pressed
   GLFW.keyCallback $= \k s -> do
      when (k == (GLFW.CharKey 'H')) $ do
-        writeIORef flappingIn (s == GLFW.Press)
+        writeIORef (flappingIn drawState) (s == GLFW.Press)
         writeIORef dirty True
      when (k == (GLFW.CharKey 'S')) $ do
-        writeIORef flappingOut (s == GLFW.Press)
+        writeIORef (flappingOut drawState) (s == GLFW.Press)
         writeIORef dirty True
      when (k == (GLFW.CharKey 'L') && s == GLFW.Press) $ do
-        drawLines $~! not
+        (drawLines drawState) $~! not
         writeIORef dirty True
      when (k == (GLFW.CharKey 'C') && s == GLFW.Press) $ do
-        which <- readIORef chosenOne
+        which <- readIORef (chosenOne drawState)
         let next = if which + 1 == length possibilities then 0 else which + 1
-        writeIORef chosenOne next
+        writeIORef (chosenOne drawState) next
         GLFW.windowTitle $= "Cube " ++ show next ++ " - World of Foam Cubes"
         writeIORef dirty True
      when (k == (GLFW.CharKey 'Q') && s == GLFW.Press) $
@@ -133,11 +141,11 @@ passive possibilities drawLines chosenOne aspect flappiness flappingIn flappingO
         d <- readIORef dirty
 
         when d $
-          render possibilities drawLines chosenOne flappiness flappingIn flappingOut >> GLFW.swapBuffers
+          render possibilities drawState >> GLFW.swapBuffers
 
-        flappingIn' <- readIORef flappingIn
-        flappingOut' <- readIORef flappingOut
-        let shouldRepeat = (flappingIn' || flappingOut')
+        flappingIn <- readIORef (flappingIn drawState)
+        flappingOut <- readIORef (flappingOut drawState)
+        let shouldRepeat = (flappingIn || flappingOut)
         unless shouldRepeat $
           writeIORef dirty False
         -- check if we need to quit the loop
@@ -168,7 +176,7 @@ passive possibilities drawLines chosenOne aspect flappiness flappingIn flappingO
             --GL.rotate (0.02*fromIntegral y - 12) (GL.Vector3 1 0 0 :: GL.Vector3 GL.GLfloat)
             --GL.translate $ GL.Vector3 0 0 (-14::GLfloat)
 
-            a <- readIORef aspect
+            a <- readIORef (aspect drawState)
             perspective 45.0 a 4 20000
 
             let ang = fromIntegral x / 100.0
@@ -182,22 +190,22 @@ passive possibilities drawLines chosenOne aspect flappiness flappingIn flappingO
             when (b == GLFW.ButtonLeft && s == GLFW.Release) $
               waitForPress dirty
 
-render possibilities drawLines chosenOne flappiness' flappingIn' flappingOut' = do
-  l <- readIORef chosenOne
+render possibilities drawState = do
+  l <- readIORef (chosenOne drawState)
   GL.clear [GL.ColorBuffer, GL.DepthBuffer]
 
   let soln = possibilities !! l
   let pcs = netPieces soln
-  flappingIn <- readIORef flappingIn'
-  flappingOut <- readIORef flappingOut'
+  flappingIn <- readIORef $ flappingIn drawState
+  flappingOut <- readIORef $ flappingOut drawState
 
   when flappingIn $
-    modifyIORef flappiness' $ \f -> min 1 (f+0.02)
+    modifyIORef (flappiness drawState) $ \f -> min 1 (f+0.02)
   when flappingOut $
-    modifyIORef flappiness' $ \f -> max (-0) (f-0.02)
+    modifyIORef (flappiness drawState) $ \f -> max (-0) (f-0.02)
 
-  flappiness <- sin . (/2.0) . (*3.14159) <$> readIORef flappiness'
-  lines <- readIORef drawLines
+  flappiness <- sin . (/2.0) . (*3.14159) <$> readIORef (flappiness drawState)
+  lines <- readIORef (drawLines drawState)
 
   when (flappingIn || flappingOut) $ GL.rotate (3.0::GLfloat) $ Vector3 0 1 0
   flip mapM_ (zip pcs $ Cube.transforms flappiness) $ \(piece,transform) -> do
