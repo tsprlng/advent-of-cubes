@@ -4,6 +4,7 @@ import Graphics.Rendering.OpenGL (($=))
 import Data.IORef
 import Control.Monad
 import System.Environment (getArgs, getProgName)
+--import System.Posix.Signals (installHandler, Handler (Catch), sigTERM)
 
 import qualified Data.Map as M
 import Data.Map ((!))
@@ -85,6 +86,7 @@ passive possibilities drawLines chosenOne aspect flappiness flappingIn flappingO
 
   -- keep track of whether ESC has been pressed
   quit <- newIORef False
+--  installHandler sigTERM (Catch $ writeIORef quit True) Nothing  -- TODO apparently not needed, pressing ^C twice works anyway?
 
   -- keep track of whether screen needs to be redrawn
   dirty <- newIORef True
@@ -186,18 +188,18 @@ render possibilities drawLines chosenOne flappiness' flappingIn' flappingOut' = 
 
   let soln = possibilities !! l
   let pcs = netPieces soln
-  flappiness <- readIORef flappiness'
   flappingIn <- readIORef flappingIn'
   flappingOut <- readIORef flappingOut'
 
   when flappingIn $
-    modifyIORef flappiness' $ \f -> min 1 (f+0.03)
+    modifyIORef flappiness' $ \f -> min 1 (f+0.02)
   when flappingOut $
-    modifyIORef flappiness' $ \f -> max (-1) (f-0.03)
+    modifyIORef flappiness' $ \f -> max (-0) (f-0.02)
 
+  flappiness <- sin . (/2.0) . (*3.14159) <$> readIORef flappiness'
   lines <- readIORef drawLines
 
-  GL.rotate (3.0::GLfloat) $ Vector3 0 1 0
+  when (flappingIn || flappingOut) $ GL.rotate (3.0::GLfloat) $ Vector3 0 1 0
   flip mapM_ (zip pcs $ Cube.transforms flappiness) $ \(piece,transform) -> do
 
     when lines $ do
@@ -224,3 +226,9 @@ render possibilities drawLines chosenOne flappiness' flappingIn' flappingOut' = 
     let (frontFace, backFace, sides) = Cube.pieceToQuads piece
     GL.color $ faceColor piece
     GL.renderPrimitive GL.Quads $ mapM_ (GL.vertex . v3c) $ map transform $ frontFace
+
+  --GL.scale 0.1 0.1 (0.1 :: GLfloat)
+  --GL.currentRasterPosition $= GL.Vertex4 100 100 0 1
+  --GL.lighting $= GL.Disabled
+  --GLFW.renderString GLFW.Fixed8x16 "Hello"
+  --GL.lighting $= GL.Enabled

@@ -114,14 +114,15 @@ sideColor piece@(Piece ((c,_,_),_)) = (\(r, g, b, a) -> ((r+(g+b)*0.3), (g+(r+b)
 
 transforms :: GLfloat -> [ (Vertex -> Vertex) ]
 transforms p = [
-    mix p $ \(x, y, z) -> (vertex3 (500-x) (500-y) (300+z),  vertex3 (-x+400) (-y) (z)),
-    mix p $ \(x, y, z) -> (vertex3 (500-x) (-300-z) (500-y), vertex3 (-x+400) (-y-800) (z)),
-    mix p $ \(x, y, z) -> (vertex3 (300+z) (500-y) (x-500),  vertex3 (-x+1200) (-y) (z)),
-    mix p $ \(x, y, z) -> (vertex3 (-300-z) (500-y) (500-x), vertex3 (-x-400) (-y) (z)),
-    mix p $ \(x, y, z) -> (vertex3 (500-x) (y-500) (-300-z), vertex3 (-x+400) (-y-1600) (180-z)),
-    mix p $ \(x, y, z) -> (vertex3 (500-x) (300+z) (y-500),  vertex3 (-x+400) (-y+800) (z))
+    mix p $ \(x, y, z) -> (vertex3 (500-x) (500-y) (300+z),  vertex3 (-x+spacing) (-y) (z)),
+    mix p $ \(x, y, z) -> (vertex3 (500-x) (-300-z) (500-y), vertex3 (-x+spacing) (-y-2*spacing) (z)),
+    mix p $ \(x, y, z) -> (vertex3 (300+z) (500-y) (x-500),  vertex3 (-x+3*spacing) (-y) (z)),
+    mix p $ \(x, y, z) -> (vertex3 (-300-z) (500-y) (500-x), vertex3 (-x-spacing) (-y) (z)),
+    mix p $ \(x, y, z) -> (vertex3 (500-x) (y-500) (-300-z), vertex3 (-x+spacing) (-y-4*spacing) (180-z)),
+    mix p $ \(x, y, z) -> (vertex3 (500-x) (300+z) (y-500),  vertex3 (-x+spacing) (-y+2*spacing) (z))
   ]
   where
+    spacing = 500
     mix p flappy = \(x,y,z)-> let ((xx,yy,zz),(xxx,yyy,zzz)) = flappy (x,y,z) in vertex3 (mixx p xxx xx) (mixx p yyy yy) (mixx p zzz zz)
     mixx p x xx = p*xx + (1 - abs p)*x
 
