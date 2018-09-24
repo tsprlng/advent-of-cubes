@@ -183,6 +183,9 @@ render possibilities drawLines chosenOne flappiness' = do
   lines <- readIORef drawLines
 
   flip mapM_ (zip pcs $ Cube.transforms flappiness) $ \(piece,transform) -> do
+    putStrLn $ show $ lineColor piece
+
+  flip mapM_ (zip pcs $ Cube.transforms flappiness) $ \(piece,transform) -> do
 
     when lines $ do
       GL.color $ lineColor piece

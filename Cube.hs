@@ -103,23 +103,23 @@ pieceToQuads piece = threeConcat $ map toQuads $ M.toList $ whichFaces $ pieceAs
         sz = 18.0
 
 lineColor, faceColor :: Piece -> Color4
-lineColor (Piece ((0,_,_),_)) = (0.8, 0.2, 0.22, 1)
-lineColor (Piece ((1,_,_),_)) = (1.0, 1.0, 0.4, 1)
-lineColor (Piece ((2,_,_),_)) = (0.8, 0.5, 0.2, 1)
-lineColor (Piece ((3,_,_),_)) = (0.2, 0.8, 0.2, 1)
-lineColor (Piece ((4,_,_),_)) = (0.2, 0.2, 0.6, 1)
-lineColor (Piece ((5,_,_),_)) = (0.6, 0.1, 0.44, 1)
+lineColor (Piece ((0,_,_),_)) = (0.8, 0.2, 0.22, 1)  -- red
+lineColor (Piece ((1,_,_),_)) = (1.0, 1.0, 0.4, 1)   -- yello
+lineColor (Piece ((2,_,_),_)) = (0.8, 0.5, 0.2, 1)   -- orng
+lineColor (Piece ((3,_,_),_)) = (0.2, 0.8, 0.2, 1)   -- green
+lineColor (Piece ((4,_,_),_)) = (0.2, 0.2, 0.6, 1)   -- blue
+lineColor (Piece ((5,_,_),_)) = (0.6, 0.1, 0.44, 1)  -- purple
 faceColor piece@(Piece ((c,_,_),_)) = (\(r, g, b, a) -> (r, g, b, 0.84)) $ lineColor piece
 sideColor piece@(Piece ((c,_,_),_)) = (\(r, g, b, a) -> ((r+(g+b)*0.3), (g+(r+b)*0.3), (b+(r+g)*0.3), 0.82)) $ lineColor piece
 
 transforms :: GLfloat -> [ (Vertex -> Vertex) ]
 transforms p = [
-    mix p $ \(x, y, z) -> (vertex3 (500-x) (500-y) (300+z), vertex3 (x) (y+800) (z)),
-    mix p $ \(x, y, z) -> (vertex3 (500-x) (-300-z) (500-y), vertex3 (x+800) (y) (z)),
-    mix p $ \(x, y, z) -> (vertex3 (300+z) (500-y) (x-500), vertex3 (x) (y) (z)),
-    mix p $ \(x, y, z) -> (vertex3 (-300-z) (500-y) (500-x), vertex3 (x-800) (y) (z)),
-    mix p $ \(x, y, z) -> (vertex3 (500-x) (y-500) (-300-z), vertex3 (x) (y-800) (z)),
-    mix p $ \(x, y, z) -> (vertex3 (500-x) (300+z) (y-500), vertex3 (x) (y-1600) (z))
+    mix p $ \(x, y, z) -> (vertex3 (500-x) (500-y) (300+z),  vertex3 (-x) (-y) (z)),
+    mix p $ \(x, y, z) -> (vertex3 (500-x) (-300-z) (500-y), vertex3 (-x) (-y-800) (z)),
+    mix p $ \(x, y, z) -> (vertex3 (300+z) (500-y) (x-500),  vertex3 (-x+800) (-y) (z)),
+    mix p $ \(x, y, z) -> (vertex3 (-300-z) (500-y) (500-x), vertex3 (-x-800) (-y) (z)),
+    mix p $ \(x, y, z) -> (vertex3 (500-x) (y-500) (-300-z), vertex3 (-x) (-y-1600) (180-z)),
+    mix p $ \(x, y, z) -> (vertex3 (500-x) (300+z) (y-500),  vertex3 (-x) (-y+800) (z))
   ]
   where
     mix p flappy = \(x,y,z)-> let ((xx,yy,zz),(xxx,yyy,zzz)) = flappy (x,y,z) in vertex3 (mixx p xxx xx) (mixx p yyy yy) (mixx p zzz zz)
