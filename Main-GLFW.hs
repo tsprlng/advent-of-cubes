@@ -70,7 +70,7 @@ main' run possibilities = do
   -- keep all line strokes as a list of points in an IORef
   chosenOne <- newIORef 0
   drawLines <- newIORef True
-  flappiness <- newIORef 0 :: IO (IORef Cube.GLfloat)
+  flappiness <- newIORef 1 :: IO (IORef Cube.GLfloat)
   flappingIn <- newIORef False
   flappingOut <- newIORef False
   -- run the main loop
