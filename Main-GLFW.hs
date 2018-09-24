@@ -193,10 +193,11 @@ render possibilities drawLines chosenOne flappiness' flappingIn' flappingOut' = 
   when flappingIn $
     modifyIORef flappiness' $ \f -> min 1 (f+0.03)
   when flappingOut $
-    modifyIORef flappiness' $ \f -> max 0 (f-0.03)
+    modifyIORef flappiness' $ \f -> max (-1) (f-0.03)
 
   lines <- readIORef drawLines
 
+  GL.rotate (3.0::GLfloat) $ Vector3 0 1 0
   flip mapM_ (zip pcs $ Cube.transforms flappiness) $ \(piece,transform) -> do
 
     when lines $ do
