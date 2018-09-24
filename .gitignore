@@ -5,3 +5,4 @@ cube.js
 *.jsmod
 *.hi
 *.o
+.stack-work

@@ -5,7 +5,6 @@ packages:
 
 extra-deps:
 - GLFW-0.5.2.5
-- haste-compiler-0.6.0.0
 - ghc-simple-0.3
 - shellmate-0.3.4.2
 - shellmate-extras-0.3.4.1

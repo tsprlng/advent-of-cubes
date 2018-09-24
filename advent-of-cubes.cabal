@@ -11,10 +11,3 @@ executable gfx
   build-depends: base, containers, GLFW, OpenGL
   main-is: Main-GLFW.hs
 
-executable cube.js
-  main-is: Main-WebGL.hs
-  build-depends: base
-  if impl(haste)
-    build-depends: haste-lib >= 0.6
-  else
-    build-depends: haste-compiler >= 0.6
