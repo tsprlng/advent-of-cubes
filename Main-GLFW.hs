@@ -70,14 +70,16 @@ main' run possibilities = do
   -- keep all line strokes as a list of points in an IORef
   chosenOne <- newIORef 0
   drawLines <- newIORef True
-  flappiness <- newIORef 0
+  flappiness <- newIORef 0 :: IO (IORef Cube.GLfloat)
+  flappingIn <- newIORef False
+  flappingOut <- newIORef False
   -- run the main loop
-  run possibilities drawLines chosenOne aspect flappiness
+  run possibilities drawLines chosenOne aspect flappiness flappingIn flappingOut
   -- finish up
   GLFW.closeWindow
   GLFW.terminate
 
-passive possibilities drawLines chosenOne aspect flappiness = do
+passive possibilities drawLines chosenOne aspect flappiness flappingIn flappingOut = do 
   -- disable auto polling in swapBuffers
   GLFW.disableSpecial GLFW.AutoPollEvent
 
@@ -93,11 +95,11 @@ passive possibilities drawLines chosenOne aspect flappiness = do
 
   -- use key callback to track whether ESC is pressed
   GLFW.keyCallback $= \k s -> do
-     when (k == (GLFW.CharKey 'H') && s == GLFW.Press) $ do
-        flappiness $~! \f->(f+0.1)
+     when (k == (GLFW.CharKey 'H')) $ do
+        writeIORef flappingIn (s == GLFW.Press)
         writeIORef dirty True
-     when (k == (GLFW.CharKey 'S') && s == GLFW.Press) $ do
-        flappiness $~! \f->(f-0.1)
+     when (k == (GLFW.CharKey 'S')) $ do
+        writeIORef flappingOut (s == GLFW.Press)
         writeIORef dirty True
      when (k == (GLFW.CharKey 'L') && s == GLFW.Press) $ do
         drawLines $~! not
@@ -122,14 +124,20 @@ passive possibilities drawLines chosenOne aspect flappiness = do
   where
 
     loop dirty quit = do
-        GLFW.waitEvents
+        GLFW.pollEvents
+        d <- readIORef dirty
+        unless d GLFW.waitEvents
         -- redraw screen if dirty
         d <- readIORef dirty
 
         when d $
-          render possibilities drawLines chosenOne flappiness >> GLFW.swapBuffers
+          render possibilities drawLines chosenOne flappiness flappingIn flappingOut >> GLFW.swapBuffers
 
-        writeIORef dirty False
+        flappingIn' <- readIORef flappingIn
+        flappingOut' <- readIORef flappingOut
+        let shouldRepeat = (flappingIn' || flappingOut')
+        unless shouldRepeat $
+          writeIORef dirty False
         -- check if we need to quit the loop
         q <- readIORef quit
         unless q $
@@ -172,13 +180,20 @@ passive possibilities drawLines chosenOne aspect flappiness = do
             when (b == GLFW.ButtonLeft && s == GLFW.Release) $
               waitForPress dirty
 
-render possibilities drawLines chosenOne flappiness' = do
+render possibilities drawLines chosenOne flappiness' flappingIn' flappingOut' = do
   l <- readIORef chosenOne
   GL.clear [GL.ColorBuffer, GL.DepthBuffer]
 
   let soln = possibilities !! l
   let pcs = netPieces soln
   flappiness <- readIORef flappiness'
+  flappingIn <- readIORef flappingIn'
+  flappingOut <- readIORef flappingOut'
+
+  when flappingIn $
+    modifyIORef flappiness' $ \f -> min 1 (f+0.03)
+  when flappingOut $
+    modifyIORef flappiness' $ \f -> max 0 (f-0.03)
 
   lines <- readIORef drawLines
 
