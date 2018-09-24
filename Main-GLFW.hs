@@ -70,13 +70,14 @@ main' run possibilities = do
   -- keep all line strokes as a list of points in an IORef
   chosenOne <- newIORef 0
   drawLines <- newIORef True
+  flappiness <- newIORef 0
   -- run the main loop
-  run possibilities drawLines chosenOne aspect
+  run possibilities drawLines chosenOne aspect flappiness
   -- finish up
   GLFW.closeWindow
   GLFW.terminate
 
-passive possibilities drawLines chosenOne aspect = do
+passive possibilities drawLines chosenOne aspect flappiness = do
   -- disable auto polling in swapBuffers
   GLFW.disableSpecial GLFW.AutoPollEvent
 
@@ -92,6 +93,12 @@ passive possibilities drawLines chosenOne aspect = do
 
   -- use key callback to track whether ESC is pressed
   GLFW.keyCallback $= \k s -> do
+     when (k == (GLFW.CharKey 'H') && s == GLFW.Press) $ do
+        flappiness $~! \f->(f+0.1)
+        writeIORef dirty True
+     when (k == (GLFW.CharKey 'S') && s == GLFW.Press) $ do
+        flappiness $~! \f->(f-0.1)
+        writeIORef dirty True
      when (k == (GLFW.CharKey 'L') && s == GLFW.Press) $ do
         drawLines $~! not
         writeIORef dirty True
@@ -120,7 +127,7 @@ passive possibilities drawLines chosenOne aspect = do
         d <- readIORef dirty
 
         when d $
-          render possibilities drawLines chosenOne >> GLFW.swapBuffers
+          render possibilities drawLines chosenOne flappiness >> GLFW.swapBuffers
 
         writeIORef dirty False
         -- check if we need to quit the loop
@@ -165,16 +172,17 @@ passive possibilities drawLines chosenOne aspect = do
             when (b == GLFW.ButtonLeft && s == GLFW.Release) $
               waitForPress dirty
 
-render possibilities drawLines chosenOne = do
+render possibilities drawLines chosenOne flappiness' = do
   l <- readIORef chosenOne
   GL.clear [GL.ColorBuffer, GL.DepthBuffer]
 
   let soln = possibilities !! l
   let pcs = netPieces soln
+  flappiness <- readIORef flappiness'
 
   lines <- readIORef drawLines
 
-  flip mapM_ (zip pcs Cube.transforms) $ \(piece,transform) -> do
+  flip mapM_ (zip pcs $ Cube.transforms flappiness) $ \(piece,transform) -> do
 
     when lines $ do
       GL.color $ lineColor piece
@@ -183,7 +191,7 @@ render possibilities drawLines chosenOne = do
     GL.color $ faceColor piece
     GL.renderPrimitive GL.Quads $ mapM_ (GL.vertex . v3c) $ map transform $ backFace
 
-  flip mapM_ (zip pcs Cube.transforms) $ \(piece,transform) -> do
+  flip mapM_ (zip pcs $ Cube.transforms flappiness) $ \(piece,transform) -> do
 
     when lines $ do
       GL.color $ lineColor piece
@@ -192,7 +200,7 @@ render possibilities drawLines chosenOne = do
     GL.color $ sideColor piece
     GL.renderPrimitive GL.Quads $ mapM_ (GL.vertex . v3c) $ map transform $ sides
 
-  flip mapM_ (zip pcs Cube.transforms) $ \(piece,transform) -> do
+  flip mapM_ (zip pcs $ Cube.transforms flappiness) $ \(piece,transform) -> do
 
     when lines $ do
       GL.color $ lineColor piece

@@ -112,12 +112,15 @@ lineColor (Piece ((5,_,_),_)) = (0.6, 0.1, 0.44, 1)
 faceColor piece@(Piece ((c,_,_),_)) = (\(r, g, b, a) -> (r, g, b, 0.84)) $ lineColor piece
 sideColor piece@(Piece ((c,_,_),_)) = (\(r, g, b, a) -> ((r+(g+b)*0.3), (g+(r+b)*0.3), (b+(r+g)*0.3), 0.82)) $ lineColor piece
 
-transforms :: [ (Vertex -> Vertex) ]
-transforms = [
-    \(x, y, z) -> vertex3 (500-x) (500-y) (300+z),
-    \(x, y, z) -> vertex3 (500-x) (-300-z) (500-y),
-    \(x, y, z) -> vertex3 (300+z) (500-y) (x-500),
-    \(x, y, z) -> vertex3 (-300-z) (500-y) (500-x),
-    \(x, y, z) -> vertex3 (500-x) (y-500) (-300-z),
-    \(x, y, z) -> vertex3 (500-x) (300+z) (y-500)
+transforms :: GLfloat -> [ (Vertex -> Vertex) ]
+transforms p = [
+    mix p $ \(x, y, z) -> vertex3 (500-x) (500-y) (300+z),
+    mix p $ \(x, y, z) -> vertex3 (500-x) (-300-z) (500-y),
+    mix p $ \(x, y, z) -> vertex3 (300+z) (500-y) (x-500),
+    mix p $ \(x, y, z) -> vertex3 (-300-z) (500-y) (500-x),
+    mix p $ \(x, y, z) -> vertex3 (500-x) (y-500) (-300-z),
+    mix p $ \(x, y, z) -> vertex3 (500-x) (300+z) (y-500)
   ]
+  where
+    mix p flappy = \(x,y,z)-> let (xx,yy,zz) = flappy (x,y,z) in vertex3 (mixx p x xx) (mixx p y yy) (mixx p z zz)
+    mixx p x xx = p*xx + (1-p)*x
