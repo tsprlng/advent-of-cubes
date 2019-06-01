@@ -14,7 +14,7 @@ import Solver (possibilities, allColorPossibilities, netPieces)
 import qualified Cube
 
 data DrawState = DrawState {
-  aspect :: IORef GLdouble  -- window aspect ratio (for squaring up viewport)
+  aspect      :: IORef GLdouble  -- window aspect ratio (for squaring up viewport)
 , chosenOne   :: IORef Int  -- index of solution being drawn
 , drawLines   :: IORef Bool -- whether to draw lines!
 , flappiness  :: IORef Cube.GLfloat  -- how flappy the cube is
