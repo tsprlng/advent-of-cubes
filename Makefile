@@ -9,7 +9,7 @@ gfx : Main-GLFW.hs Solver.hs Pieces.hs Cube.hs
 	ghc -o $@ -O Main-GLFW.hs -hidir .crap -odir .crap
 
 cube.js : Main-WebGL.hs Solver.hs Pieces.hs Cube.hs
-	hastec Main-WebGL.hs -o cube.js --opt-whole-program=on --opt-minify=on
+	hastec Main-WebGL.hs -o cube.js --onexec --own-namespace --with-js=worker-ns-patch.js
 
 clean :
 	rm -rf .crap gfx cli cube.js *.hi *.o *.jsmod
