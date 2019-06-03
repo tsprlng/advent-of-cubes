@@ -17,8 +17,12 @@
 		var expecting = 18;
 		var got = 0;
 		myWorker.onmessage = function(e){
+			if (! e.data.quads){
+				console.log('got random message', e.data);
+				return;
+			}
 			addMeshFromQuads(e.data.quads, e.data.color);
-			console.log('added');
+			console.log('added mesh');
 			++got;
 			progress.style.width = `${100*got/expecting}%`;
 			if (got == expecting) { animate(); }

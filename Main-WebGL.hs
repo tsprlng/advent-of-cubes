@@ -24,14 +24,21 @@ main = do
 
 render :: IO ()
 render = do
-  let pcs = netPieces $ head allColorPossibilities
   let (frontFace, backFace, sides) = (\(fF,_,_)->fF, \(_,bF,_)->bF, \(_,_,s)->s)
+
+  let pcs = netPieces $ head allColorPossibilities
   forM_ [(backFace, faceColor), (sides, sideColor), (frontFace, faceColor)] $ \(quadFilter, colorer) -> do
     (flip mapM_) (zip pcs $ Cube.transforms 1) $ \(piece,transform) -> do
       (flip addMeshFromQuads (cssColor $ colorer piece)) $ map transform $ quadFilter $ pieceToQuads piece
 
+  forM_ (map netPieces $ allColorPossibilities) $ \pcs -> do
+    let stuff = flip concatMap [(backFace, faceColor), (sides, sideColor), (frontFace, faceColor)] $ \(quadFilter, colorer) ->
+      flip map (zip pcs $ Cube.transforms 1) $ \(piece, transform) ->
+        (cssColor $ colorer piece, map transform $ quadFilter $ pieceToQuads piece)
+    offerCube stuff
+
 addMeshFromQuads :: [(Double, Double, Double)] -> CssColor -> IO ()
 addMeshFromQuads = ffi "(quads, color)=>{ postMessage({quads: quads, color: color}); };"
 
---offerCube :: [(CssColor, [(Double, Double, Double)])] -> IO ()
---offerCube :: ffi "function(quadSets){ postMessage({newCube: quadSets}) }"
+offerCube :: [(CssColor, [(Double, Double, Double)])] -> IO ()
+offerCube :: ffi "function(quadSets){ postMessage({newCube: quadSets}) }"
