@@ -40,5 +40,3 @@ window.renderer = new THREE.WebGLRenderer()
 window.renderer.setPixelRatio(window.devicePixelRatio)
 window.renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
-
-animate()

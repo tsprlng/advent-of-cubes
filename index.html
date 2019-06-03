@@ -2,9 +2,26 @@
 	<title>World of Foam Cubes</title>
 	<style>
 		html, body { margin: 0; padding: 0; }
+		#progressholder { position: absolute; width: 400px; height: 40px; border: 1px solid #f80; box-sizing: border-box; }
+		#progress { position: absolute; background: #f80; top: 0; left: 0; bottom: 0; border: 3px solid #000; box-sizing: border-box; }
 	</style>
 </head><body>
+	<div id="progressholder">
+		<div id="progress"></div>
+	</div>
 	<script src="./three.min.js"></script>
-	<script src="./cube.js"></script>
 	<script src="./precube.js"></script>
+	<!--<script src="./cube.js"></script>-->
+	<script>
+		var myWorker = new Worker('./cube.js');
+		var expecting = 18;
+		var got = 0;
+		myWorker.onmessage = function(e){
+			addMeshFromQuads(e.data.quads, e.data.color);
+			console.log('added');
+			++got;
+			progress.style.width = `${100*got/expecting}%`;
+			if (got == expecting) { animate(); }
+		}
+	</script>
 </body></html>

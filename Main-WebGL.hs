@@ -21,13 +21,13 @@ main = do
 
 render = do
   let pcs = netPieces $ head allColorPossibilities
-  (flip mapM_) (zip pcs Cube.transforms) $ \(piece,transform) -> do
+  (flip mapM_) (zip pcs $ Cube.transforms 1) $ \(piece,transform) -> do
     let (frontFace, backFace, sides) = pieceToQuads piece
     (flip addMeshFromQuads (cssColor $ faceColor piece)) $ map transform $ backFace
-  (flip mapM_) (zip pcs Cube.transforms) $ \(piece,transform) -> do
+  (flip mapM_) (zip pcs $ Cube.transforms 1) $ \(piece,transform) -> do
     let (frontFace, backFace, sides) = pieceToQuads piece
     (flip addMeshFromQuads (cssColor $ sideColor piece)) $ map transform $ sides
-  (flip mapM_) (zip pcs Cube.transforms) $ \(piece,transform) -> do
+  (flip mapM_) (zip pcs $ Cube.transforms 1) $ \(piece,transform) -> do
     let (frontFace, backFace, sides) = pieceToQuads piece
     (flip addMeshFromQuads (cssColor $ faceColor piece)) $ map transform $ frontFace
 
