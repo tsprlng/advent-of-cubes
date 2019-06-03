@@ -1,12 +1,12 @@
 {-|
 Produces valid cube solutions from the puzzle pieces in Pieces.
 -}
-module Solver (
-  Net,
-  possibilities,
-  allColorPossibilities,
-  netPieces
-) where
+module Solver where
+  --Net,
+  --possibilities,
+  --allColorPossibilities,
+  --netPieces
+--) where
 
 import Pieces
 import Data.List (groupBy, sortOn)
