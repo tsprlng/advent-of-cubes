@@ -2,6 +2,7 @@
 Produces valid cube solutions from the puzzle pieces in Pieces.
 -}
 module Solver (
+  Net,
   possibilities,
   allColorPossibilities,
   netPieces
