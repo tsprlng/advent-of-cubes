@@ -1,4 +1,17 @@
-module Cube where
+{-|
+Converts a cube-solution from Solver into 3D vertexes and colours for rendering.
+-}
+module Cube (
+  pieceToLines,
+  pieceToQuads,
+  transforms,
+  sideColor,
+  lineColor,
+  faceColor,
+  GLfloat,
+  Vertex,
+  Color4
+) where
 
 import qualified Data.Map as M
 
@@ -100,7 +113,7 @@ pieceToQuads piece = threeConcat $ map toQuads $ M.toList $ whichFaces $ pieceAs
     shrink :: (Bool, NumShrinker, Bool, NumShrinker) -> Vertex -> Vertex
     shrink (xc, xt, yc, yt) (x, y, z) = vertex3 (if xc then xt x sz else x) (if yc then yt y sz else y) z
       where
-        sz = 18.0
+        sz = 18
 
 lineColor, faceColor :: Piece -> Color4
 lineColor (Piece ((0,_,_),_)) = (0.8, 0.2, 0.22, 1)  -- red

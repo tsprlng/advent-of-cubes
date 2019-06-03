@@ -1,3 +1,6 @@
+{-|
+A version of the program that renders a 3D cube solution to a GL window, and lets you cycle through the solutions and rotate the cubes.
+-}
 import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
 import Graphics.Rendering.OpenGL (($=))

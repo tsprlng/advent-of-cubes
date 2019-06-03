@@ -1,3 +1,6 @@
+{-|
+Describes the puzzle pieces in the original cube game.
+-}
 module Pieces where
 
 type FlipSide = Bool

@@ -1,4 +1,11 @@
-module Solver where
+{-|
+Produces valid cube solutions from the puzzle pieces in Pieces.
+-}
+module Solver (
+  possibilities,
+  allColorPossibilities,
+  netPieces
+) where
 
 import Pieces
 import Data.List (groupBy, sortOn)

@@ -1,8 +1,12 @@
+{-|
+A simple version of the program that draws every solution for any given colour / for the mix of all colours, using terminal escape characters at the command line.
+-}
 module Main where
 
 import Pieces
 import Solver
 import Data.List (intercalate)
+import Control.Monad (forM_)
 
 instance Show Piece where
   show (Piece ((colorIdx, flipside, label), vs))
@@ -42,8 +46,9 @@ instance Show Net where
       append a b = unlines $ zipWith (\a b -> a ++ "  " ++ b) (lines a) (lines b)
 
 main = do
-  mapM_ (\n -> putStrLn $ (("Color " ++ show n ++ ": ") ++) $ show $ length $ possibilities n) [0..5]
-  putStrLn ""
+  forM_ [0..5] $ \n ->
+    putStrLn $ (("Color " ++ show n ++ ": ") ++) $ show $ length $ possibilities n
   putStrLn $ ("One of each: " ++) $ show $ length allColorPossibilities
   putStrLn ""
-  putStrLn $ intercalate "\n--\n" $ map show $ allColorPossibilities
+  putStrLn $ intercalate "\n--\n" $ map show $
+    concatMap possibilities [0..5] ++ allColorPossibilities
