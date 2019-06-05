@@ -1,4 +1,6 @@
 resolver: lts-6.14
+# This is really old so that you can `stack install haste-compiler` and it will have the right GHC to actually work.
+# The next piece of magic is `stack exec haste-boot`
 
 packages:
 - .
