@@ -30,6 +30,7 @@ render = do
     (flip mapM_) (zip pcs $ Cube.transforms 1) $ \(piece,transform) -> do
       (flip addMeshFromQuads (cssColor $ colorer piece)) $ map transform $ quadFilter $ pieceToQuads piece
 
+-- TODO this choice of interface is very useful as a proof of concept but is pretty shit as an actual design
 addMeshFromQuads :: [(Double, Double, Double)] -> CssColor -> IO ()
 addMeshFromQuads = ffi "(quads, color)=>{ postMessage({quads: quads, color: color}); };"
 
