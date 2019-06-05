@@ -1,11 +1,14 @@
+<!DOCTYPE html>
 <html><head>
 	<title>World of Foam Cubes</title>
 	<style>
 		html, body { margin: 0; padding: 0; }
 		#progressholder { position: absolute; width: 400px; height: 40px; border: 1px solid #f80; box-sizing: border-box; }
 		#progress { position: absolute; background: #f80; top: 0; left: 0; bottom: 0; border: 3px solid #000; box-sizing: border-box; }
+		#source { position: fixed; top: 4px; right: 4px; width: auto; background: #000; color: #fff }
 	</style>
 </head><body>
+	<div id="source"><a href="https://github.com/tsprlng/advent-of-cubes">source</a></div>
 	<div id="progressholder">
 		<div id="progress"></div>
 	</div>
@@ -13,6 +16,7 @@
 	<script src="./precube.js"></script>
 	<!--<script src="./cube.js"></script>-->
 	<script>
+		// I hope you weren't expecting to be impressed.
 		var myWorker = new Worker('./cube.js');
 		var expecting = 18;
 		var got = 0;
