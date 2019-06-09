@@ -211,32 +211,15 @@ render possibilities drawState = do
   lines <- readIORef (drawLines drawState)
 
   when (flappingIn || flappingOut) $ GL.rotate (3.0::GLfloat) $ Vector3 0 1 0
-  flip mapM_ (zip pcs $ Cube.transforms flappiness) $ \(piece,transform) -> do
 
-    when lines $ do
-      GL.color $ lineColor piece
-      GL.renderPrimitive GL.Lines $ mapM_ (GL.vertex . v3c) $ map transform $ Cube.pieceToLines piece
-    let (frontFace, backFace, sides) = Cube.pieceToQuads piece
-    GL.color $ faceColor piece
-    GL.renderPrimitive GL.Quads $ mapM_ (GL.vertex . v3c) $ map transform $ backFace
-
-  flip mapM_ (zip pcs $ Cube.transforms flappiness) $ \(piece,transform) -> do
-
-    when lines $ do
-      GL.color $ lineColor piece
-      GL.renderPrimitive GL.Lines $ mapM_ (GL.vertex . v3c) $ map transform $ Cube.pieceToLines piece
-    let (frontFace, backFace, sides) = Cube.pieceToQuads piece
-    GL.color $ sideColor piece
-    GL.renderPrimitive GL.Quads $ mapM_ (GL.vertex . v3c) $ map transform $ sides
-
-  flip mapM_ (zip pcs $ Cube.transforms flappiness) $ \(piece,transform) -> do
-
-    when lines $ do
-      GL.color $ lineColor piece
-      GL.renderPrimitive GL.Lines $ mapM_ (GL.vertex . v3c) $ map transform $ Cube.pieceToLines piece
-    let (frontFace, backFace, sides) = Cube.pieceToQuads piece
-    GL.color $ faceColor piece
-    GL.renderPrimitive GL.Quads $ mapM_ (GL.vertex . v3c) $ map transform $ frontFace
+  let (frontFace, backFace, sides) = (\(fF,_,_)->fF, \(_,bF,_)->bF, \(_,_,s)->s)
+  forM_ [(backFace, faceColor), (sides, sideColor), (frontFace, faceColor)] $ \(quadFilter, colorer) -> do
+    forM_ (zip pcs $ Cube.transforms flappiness) $ \(piece,transform) -> do
+      when lines $ do
+        GL.color $ lineColor piece
+        GL.renderPrimitive GL.Lines $ mapM_ (GL.vertex . v3c) $ map transform $ Cube.pieceToLines piece
+      GL.color $ colorer piece
+      GL.renderPrimitive GL.Quads $ mapM_ (GL.vertex . v3c) $ map transform $ quadFilter $ Cube.pieceToQuads piece
 
   --GL.scale 0.1 0.1 (0.1 :: GLfloat)
   --GL.currentRasterPosition $= GL.Vertex4 100 100 0 1
