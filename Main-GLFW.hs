@@ -63,7 +63,6 @@ main' run possibilities = do
   -- set the color to clear background
   GL.clearColor $= Color4 0 0 0 0
 
-  thing <- newIORef False
   drawState <- return DrawState
     `ap` (newIORef 1.0)
     `ap` (newIORef 0)
