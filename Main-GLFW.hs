@@ -38,7 +38,7 @@ main = do
   prog <- getProgName
   case args of
     [] -> main' passive allColorPossibilities
-    [n] -> main' passive (possibilities (read n))
+    [n] -> main' passive (possibilities (allColors !! read n))
   --main' passive
 --  case args of
 --    ["active"]  -> putStrLn "Running in active mode" >> main' active
@@ -59,7 +59,7 @@ main' run possibilities = do
   GL.blend      $= GL.Enabled
   GL.blendFunc  $= (GL.SrcAlpha, GL.OneMinusSrcAlpha)
   GL.lineWidth  $= 1.4
-  GL.cullFace   $= Just GL.Back
+  --GL.cullFace   $= Just GL.Back
   -- set the color to clear background
   GL.clearColor $= Color4 0 0 0 0
 

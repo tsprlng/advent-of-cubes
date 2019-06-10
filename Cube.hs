@@ -116,12 +116,12 @@ pieceToQuads piece = threeConcat $ map toQuads $ M.toList $ whichFaces $ pieceAs
         sz = 18
 
 lineColor, faceColor :: Piece -> Color4
-lineColor (Piece ((0,_,_),_)) = (0.8, 0.2, 0.22, 1)  -- red
-lineColor (Piece ((1,_,_),_)) = (1.0, 1.0, 0.4, 1)   -- yello
-lineColor (Piece ((2,_,_),_)) = (0.8, 0.5, 0.2, 1)   -- orng
-lineColor (Piece ((3,_,_),_)) = (0.2, 0.8, 0.2, 1)   -- green
-lineColor (Piece ((4,_,_),_)) = (0.2, 0.2, 0.6, 1)   -- blue
-lineColor (Piece ((5,_,_),_)) = (0.6, 0.1, 0.44, 1)  -- purple
+lineColor (Piece ((Red,_,_),_))     = (0.8, 0.2, 0.22, 1)  -- red
+lineColor (Piece ((Yellow,_,_),_))  = (1.0, 1.0, 0.4, 1)   -- yello
+lineColor (Piece ((Orange,_,_),_))  = (0.8, 0.5, 0.2, 1)   -- orng
+lineColor (Piece ((Green,_,_),_))   = (0.2, 0.8, 0.2, 1)   -- green
+lineColor (Piece ((Blue,_,_),_))    = (0.2, 0.2, 0.6, 1)   -- blue
+lineColor (Piece ((Purple,_,_),_))  = (0.6, 0.1, 0.44, 1)  -- purple
 faceColor piece@(Piece ((c,_,_),_)) = (\(r, g, b, a) -> (r, g, b, 0.84)) $ lineColor piece
 sideColor piece@(Piece ((c,_,_),_)) = (\(r, g, b, a) -> ((r+(g+b)*0.3), (g+(r+b)*0.3), (b+(r+g)*0.3), 0.82)) $ lineColor piece
 

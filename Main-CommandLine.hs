@@ -26,12 +26,12 @@ instance Show Piece where
         showBit n = if (vs !! n) then filled else " "
         filled = if flipside then "█" else "▓"
 
-        color 0 = "\ESC[1;31m"     -- red
-        color 1 = "\ESC[1;33m"     -- yellow
-        color 2 = "\ESC[38;5;208m" -- orrnj
-        color 3 = "\ESC[1;32m"     -- green
-        color 4 = "\ESC[1;36m"     -- blue
-        color 5 = "\ESC[1;35m"     -- purple
+        color Red    = "\ESC[1;31m"
+        color Yellow = "\ESC[1;33m"
+        color Orange = "\ESC[38;5;208m"
+        color Green  = "\ESC[1;32m"
+        color Blue   = "\ESC[1;36m"
+        color Purple = "\ESC[1;35m"
 
         reset = "\ESC[0m"
 
@@ -46,9 +46,9 @@ instance Show Net where
       append a b = unlines $ zipWith (\a b -> a ++ "  " ++ b) (lines a) (lines b)
 
 main = do
-  forM_ [0..5] $ \n ->
-    putStrLn $ (("Color " ++ show n ++ ": ") ++) $ show $ length $ possibilities n
+  forM_ allColors $ \color ->
+    putStrLn $ ((show color ++ ": ") ++) $ show $ length $ possibilities color
   putStrLn $ ("One of each: " ++) $ show $ length allColorPossibilities
   putStrLn ""
   putStrLn $ intercalate "\n--\n" $ map show $
-    concatMap possibilities [0..5] ++ allColorPossibilities
+    concatMap possibilities allColors ++ allColorPossibilities
