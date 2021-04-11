@@ -59,7 +59,7 @@ main' run possibilities = do
   GL.blend      $= GL.Enabled
   GL.blendFunc  $= (GL.SrcAlpha, GL.OneMinusSrcAlpha)
   GL.lineWidth  $= 1.4
-  --GL.cullFace   $= Just GL.Back
+  GL.cullFace   $= Just GL.Back
   -- set the color to clear background
   GL.clearColor $= Color4 0 0 0 0
 
