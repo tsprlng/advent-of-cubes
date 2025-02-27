@@ -125,13 +125,20 @@ lineColor (Piece ((Purple,_,_),_))  = (0.6, 0.1, 0.44, 1)  -- purple
 faceColor piece@(Piece ((c,_,_),_)) = (\(r, g, b, a) -> (r, g, b, 0.84)) $ lineColor piece
 sideColor piece@(Piece ((c,_,_),_)) = (\(r, g, b, a) -> ((r+(g+b)*0.3), (g+(r+b)*0.3), (b+(r+g)*0.3), 0.82)) $ lineColor piece
 
+rotate5 :: GLfloat -> (Vertex -> Vertex) -> (Vertex -> Vertex)
+rotate5 p' fn = (r' p) . fn
+  where
+    p = 3.14 * (1 - p')
+    r' :: GLfloat -> Vertex -> Vertex
+    r' p (x, y, z) = (x, cos p * y + sin p * z, sin p * y + cos p * z)
+
 transforms :: GLfloat -> [ (Vertex -> Vertex) ]
 transforms p = [
     mix p $ \(x, y, z) -> (vertex3 (500-x) (500-y) (300+z),  vertex3 (-x+spacing) (-y) (z)),
     mix p $ \(x, y, z) -> (vertex3 (500-x) (-300-z) (500-y), vertex3 (-x+spacing) (-y-2*spacing) (z)),
     mix p $ \(x, y, z) -> (vertex3 (300+z) (500-y) (x-500),  vertex3 (-x+3*spacing) (-y) (z)),
     mix p $ \(x, y, z) -> (vertex3 (-300-z) (500-y) (500-x), vertex3 (-x-spacing) (-y) (z)),
-    mix p $ \(x, y, z) -> (vertex3 (500-x) (y-500) (-300-z), vertex3 (-x+spacing) (-y-4*spacing) (180-z)),
+    rotate5 p $ mix p $ \(x, y, z) -> (vertex3 (500-x) (y-500) (-300-z), vertex3 (-x+spacing) (y-4*spacing) (180-z)),
     mix p $ \(x, y, z) -> (vertex3 (500-x) (300+z) (y-500),  vertex3 (-x+spacing) (-y+2*spacing) (z))
   ]
   where
