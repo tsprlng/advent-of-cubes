@@ -1,6 +1,6 @@
 .PHONY : all clean
 
-all : cli gfx cube.js
+all : cli gfx
 
 cli : Main-CommandLine.hs Solver.hs Pieces.hs
 	cabal build cli
