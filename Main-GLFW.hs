@@ -1,6 +1,7 @@
 {-|
 A version of the program that renders a 3D cube solution to a GL window, and lets you cycle through the solutions and rotate the cubes.
 -}
+import Control.Exception (assert)
 import Graphics.Rendering.OpenGL as GL
 import Graphics.UI.GLFW as GLFW
 import Graphics.Rendering.OpenGL (($=))
@@ -9,6 +10,7 @@ import Control.Monad
 import System.Environment (getArgs, getProgName)
 --import System.Posix.Signals (installHandler, Handler (Catch), sigTERM)
 
+import Data.Maybe (fromJust)
 import qualified Data.Map as M
 import Data.Map ((!))
 
@@ -45,12 +47,16 @@ main = do
 --    ["passive"] -> putStrLn "Running in passive mode" >> main' passive
 --    _ -> putStrLn $ "USAGE: " ++ prog ++ " [active|passive]"
 
+initTitle = "Cube 0 - World of Foam Cubes"
+
 main' run possibilities = do
-  GLFW.initialize
+  assert <$> GLFW.init
   -- open window
-  GLFW.openWindowHint FSAASamples 4
-  GLFW.openWindow (GL.Size 800 600) [GLFW.DisplayAlphaBits 8, GLFW.DisplayDepthBits 16] GLFW.Window
-  GLFW.windowTitle $= "Cube 0 - World of Foam Cubes"
+  GLFW.windowHint $ GLFW.WindowHint'Samples (Just 4)
+  GLFW.windowHint $ GLFW.WindowHint'AlphaBits (Just 8)
+  GLFW.windowHint $ GLFW.WindowHint'DepthBits (Just 16)
+  window <- fromJust <$> GLFW.createWindow 800 600 initTitle Nothing Nothing
+  GLFW.makeContextCurrent $ Just window
   GL.shadeModel    $= GL.Smooth
   GL.depthFunc $= Just Less
   -- enable antialiasing
@@ -71,9 +77,9 @@ main' run possibilities = do
     `ap` (newIORef False)
     `ap` (newIORef False)
 
-  GLFW.windowSizeCallback $= \ size@(GL.Size w h) ->
+  GLFW.setWindowSizeCallback window $ Just $ \ _ w h ->
     do
-      GL.viewport   $= (GL.Position 0 0, size)
+      GL.viewport   $= (GL.Position 0 0, GL.Size (fromIntegral w) (fromIntegral h))
       GL.matrixMode $= GL.Projection
 
       let a = (fromIntegral w / fromIntegral h)
@@ -85,14 +91,14 @@ main' run possibilities = do
       lookAt (Vertex3 (3000 * sin ang) (14000 - 100 * fromIntegral 130) (3000 * cos ang) :: Vertex3 GLdouble) (Vertex3 0 0 0 :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
 
   -- run the main loop
-  run possibilities drawState
+  run window possibilities drawState
   -- finish up
-  GLFW.closeWindow
+  GLFW.setWindowShouldClose window True
   GLFW.terminate
 
-passive possibilities drawState = do 
+passive window possibilities drawState = do 
   -- disable auto polling in swapBuffers
-  GLFW.disableSpecial GLFW.AutoPollEvent
+  --GLFW.disableSpecial GLFW.AutoPollEvent  -- TODO this was removed apparently?
 
   -- keep track of whether ESC has been pressed
   quit <- newIORef False
@@ -103,32 +109,34 @@ passive possibilities drawState = do
 
   -- mark screen dirty in refresh callback which is often called
   -- when screen or part of screen comes into visibility.
-  GLFW.windowRefreshCallback $= writeIORef dirty True
+  GLFW.setWindowRefreshCallback window $ Just $ \_ -> writeIORef dirty True
 
   -- use key callback to track whether ESC is pressed
-  GLFW.keyCallback $= \k s -> do
-     when (k == (GLFW.CharKey 'H')) $ do
-        writeIORef (flappingIn drawState) (s == GLFW.Press)
+  GLFW.setKeyCallback window $ Just $ \_ k scan s _ -> do
+     keyname <- GLFW.getKeyName k scan
+
+     when (keyname == (Just "h")) $ do
+        writeIORef (flappingIn drawState) (s /= GLFW.KeyState'Released)
         writeIORef dirty True
-     when (k == (GLFW.CharKey 'S')) $ do
-        writeIORef (flappingOut drawState) (s == GLFW.Press)
+     when (keyname == (Just "s")) $ do
+        writeIORef (flappingOut drawState) (s /= GLFW.KeyState'Released)
         writeIORef dirty True
-     when (k == (GLFW.CharKey 'L') && s == GLFW.Press) $ do
+     when (keyname == (Just "l") && s == GLFW.KeyState'Pressed) $ do
         (drawLines drawState) $~! not
         writeIORef dirty True
-     when (k == (GLFW.CharKey 'C') && s == GLFW.Press) $ do
+     when (keyname == (Just "c") && s == GLFW.KeyState'Pressed) $ do
         which <- readIORef (chosenOne drawState)
         let next = if which + 1 == length possibilities then 0 else which + 1
         writeIORef (chosenOne drawState) next
-        GLFW.windowTitle $= "Cube " ++ show next ++ " - World of Foam Cubes"
+        GLFW.setWindowTitle window $ "Cube " ++ show next ++ " - World of Foam Cubes"
         writeIORef dirty True
-     when (k == (GLFW.CharKey 'Q') && s == GLFW.Press) $
+     when (keyname == (Just "q") && s == GLFW.KeyState'Pressed) $
         writeIORef quit True
-     when (fromEnum k == fromEnum GLFW.ESC && s == GLFW.Press) $
+     when (fromEnum k == fromEnum GLFW.Key'Escape && s == GLFW.KeyState'Pressed) $
         writeIORef quit True
 
   -- Terminate the program if the window is closed
-  GLFW.windowCloseCallback $= (writeIORef quit True >> return True)
+  GLFW.setWindowCloseCallback window $ Just (\_ -> writeIORef quit True)
 
   -- by default start with waitForPress
   waitForPress dirty
@@ -143,7 +151,7 @@ passive possibilities drawState = do
         d <- readIORef dirty
 
         when d $
-          render possibilities drawState >> GLFW.swapBuffers
+          render possibilities drawState >> GLFW.swapBuffers window
 
         flappingIn <- readIORef (flappingIn drawState)
         flappingOut <- readIORef (flappingOut drawState)
@@ -157,18 +165,18 @@ passive possibilities drawState = do
 
     waitForPress dirty =
       do
-        GLFW.mousePosCallback    $= \_ -> return ()
+        GLFW.setCursorPosCallback window Nothing
 
-        GLFW.mouseButtonCallback $= \b s ->
-            when (b == GLFW.ButtonLeft && s == GLFW.Press) $
+        GLFW.setMouseButtonCallback window $ Just $ \_ b s _ ->
+            when (b == GLFW.MouseButton'1 && s == GLFW.MouseButtonState'Pressed) $
               do
                 -- when left mouse button is pressed, switch to waitForRelease action.
-                (GL.Position x y) <- GL.get GLFW.mousePos
+                (x, y) <- GLFW.getCursorPos window
                 waitForRelease dirty
 
     waitForRelease dirty =
       do
-        GLFW.mousePosCallback $= \(Position x y) ->
+        GLFW.setCursorPosCallback window $ Just $ \_ x y ->
           do
 
             GL.loadIdentity
@@ -181,15 +189,15 @@ passive possibilities drawState = do
             a <- readIORef (aspect drawState)
             perspective 45.0 a 4 20000
 
-            let ang = fromIntegral x / 100.0
-            lookAt (Vertex3 (3000 * sin ang) (14000 - 100 * fromIntegral y) (3000 * cos ang) :: Vertex3 GLdouble) (Vertex3 0 0 0 :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
+            let ang = x / 100.0
+            lookAt (Vertex3 (3000 * sin ang) (14000 - 100 * y) (3000 * cos ang) :: Vertex3 GLdouble) (Vertex3 0 0 0 :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
             -- mark screen dirty
             writeIORef dirty True
 
-        GLFW.mouseButtonCallback $= \b s ->
+        GLFW.setMouseButtonCallback window $ Just $ \_ b s _ ->
             -- when left mouse button is released, switch back to
             -- waitForPress action.
-            when (b == GLFW.ButtonLeft && s == GLFW.Release) $
+            when (b == GLFW.MouseButton'1 && s == GLFW.MouseButtonState'Released) $
               waitForPress dirty
 
 render possibilities drawState = do

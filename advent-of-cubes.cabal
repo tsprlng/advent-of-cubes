@@ -9,6 +9,6 @@ executable cli
   other-modules: Pieces, Solver
 
 executable gfx
-  build-depends: base, containers, GLFW, OpenGL
+  build-depends: base, containers, GLFW-b, OpenGL
   main-is: Main-GLFW.hs
   other-modules: Pieces, Solver, Cube
