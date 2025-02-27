@@ -1,8 +1,7 @@
+# from cabal build
+dist-newstyle
+
+# from hastec
 .crap
-cli
-gfx
 cube.js
 *.jsmod
-*.hi
-*.o
-.stack-work
