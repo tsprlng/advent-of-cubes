@@ -6,8 +6,9 @@ cabal-version: >= 1.10
 executable cli
   build-depends: base
   main-is: Main-CommandLine.hs
+  other-modules: Pieces, Solver
 
 executable gfx
   build-depends: base, containers, GLFW, OpenGL
   main-is: Main-GLFW.hs
-
+  other-modules: Pieces, Solver, Cube
