@@ -210,14 +210,14 @@ render possibilities drawState = do
   flappingOut <- readIORef $ flappingOut drawState
 
   when flappingIn $
-    modifyIORef (flappiness drawState) $ \f -> min 1 (f+0.02)
+    modifyIORef (flappiness drawState) $ \f -> min 1 (f+0.008)
   when flappingOut $
-    modifyIORef (flappiness drawState) $ \f -> max (-1) (f-0.02)
+    modifyIORef (flappiness drawState) $ \f -> max (-1) (f-0.008)
 
   flappiness <- (/2.0) . (+1.0) . sin . (/2.0) . (*3.14159) <$> readIORef (flappiness drawState)
   lines <- readIORef (drawLines drawState)
 
-  when (flappingIn || flappingOut) $ GL.rotate (3.0::GLfloat) $ Vector3 0 1 0
+  when (flappingIn || flappingOut) $ GL.rotate (1.2::GLfloat) $ Vector3 0 1 0
 
   let (frontFace, backFace, sides) = (\(fF,_,_)->fF, \(_,bF,_)->bF, \(_,_,s)->s)
   forM_ [(backFace, faceColor), (sides, sideColor), (frontFace, faceColor)] $ \(quadFilter, colorer) -> do
