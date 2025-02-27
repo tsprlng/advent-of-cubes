@@ -77,7 +77,7 @@ main' run possibilities = do
     `ap` (newIORef False)
     `ap` (newIORef False)
 
-  GLFW.setWindowSizeCallback window $ Just $ \ _ w h ->
+  GLFW.setFramebufferSizeCallback window $ Just $ \ _ w h ->
     do
       GL.viewport   $= (GL.Position 0 0, GL.Size (fromIntegral w) (fromIntegral h))
       GL.matrixMode $= GL.Projection
