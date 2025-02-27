@@ -77,8 +77,7 @@ main' run possibilities = do
     `ap` (newIORef False)
     `ap` (newIORef False)
 
-  GLFW.setFramebufferSizeCallback window $ Just $ \ _ w h ->
-    do
+  let resizeCallback = \ _ w h -> do
       GL.viewport   $= (GL.Position 0 0, GL.Size (fromIntegral w) (fromIntegral h))
       GL.matrixMode $= GL.Projection
 
@@ -89,6 +88,10 @@ main' run possibilities = do
       perspective 45.0 a 4 20000
       let ang = fromIntegral 37 / 100.0
       lookAt (Vertex3 (3000 * sin ang) (14000 - 100 * fromIntegral 130) (3000 * cos ang) :: Vertex3 GLdouble) (Vertex3 0 0 0 :: Vertex3 GLdouble) (Vector3 0 1 0 :: Vector3 GLdouble)
+
+  GLFW.setFramebufferSizeCallback window $ Just resizeCallback
+  (w,h) <- getFramebufferSize window
+  resizeCallback window w h  -- not automatically called on startup on MacOS
 
   -- run the main loop
   run window possibilities drawState
