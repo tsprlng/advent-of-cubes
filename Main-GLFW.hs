@@ -79,7 +79,6 @@ main' run possibilities = do
 
   let resizeCallback = \ _ w h -> do
       GL.viewport   $= (GL.Position 0 0, GL.Size (fromIntegral w) (fromIntegral h))
-      GL.matrixMode $= GL.Projection
 
       let a = (fromIntegral w / fromIntegral h)
       writeIORef (aspect drawState) a
