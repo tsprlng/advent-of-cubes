@@ -223,6 +223,7 @@ render possibilities drawState = do
   forM_ [(backFace, faceColor), (sides, sideColor), (frontFace, faceColor)] $ \(quadFilter, colorer) -> do
     forM_ (zip pcs $ Cube.transforms flappiness) $ \(piece,transform) -> do
       when lines $ do
+        GL.lineWidth $= 3.8
         GL.color $ lineColor piece
         GL.renderPrimitive GL.Lines $ mapM_ (GL.vertex . v3c) $ map transform $ Cube.pieceToLines piece
       GL.color $ colorer piece
