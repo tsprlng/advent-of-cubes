@@ -1,6 +1,8 @@
 "Advent of Cubes"
 =================
 
+![Screenshot of solved cube](./doc/opengl.png)
+
 Solving foam cubes in haskell.
 
 https://www.tspurling.co.uk/foam-cubes/  (probably but not certainly the latest version)
